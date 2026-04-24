@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Start Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>Press Start Quiz</h1>
+        </header>
+
+        <div id="menu">
+            <p class="menu-subtitle">Elige tu dificultad</p>
+            <div class="menu-options">
+                <button class="btn-difficulty" data-level="Fácil">
+                    <span class="diff-icon">★</span>
+                    <span class="diff-label">Fácil</span>
+                    <span class="diff-desc">Para calentar motores</span>
+                </button>
+                <button class="btn-difficulty" data-level="Media">
+                    <span class="diff-icon">★★</span>
+                    <span class="diff-label">Media</span>
+                    <span class="diff-desc">Para jugadores casuales</span>
+                </button>
+                <button class="btn-difficulty" data-level="Difícil">
+                    <span class="diff-icon">★★★</span>
+                    <span class="diff-label">Difícil</span>
+                    <span class="diff-desc">Solo para veteranos</span>
+                </button>
+                <button class="btn-difficulty btn-todas" data-level="Todas">
+                    <span class="diff-icon">🎮</span>
+                    <span class="diff-label">Todas</span>
+                    <span class="diff-desc">Mezcla de todo nivel</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="game" style="display: none;">
+            <div id="status">
+                <span id="difficulty-badge">Fácil</span>
+                <span id="score-display">Puntos: 0</span>
+            </div>
+
+            <main id="quiz">
+                <h2 id="question">Cargando pregunta...</h2>
+                <div id="options-container"></div>
+            </main>
+
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
