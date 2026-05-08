@@ -1,6 +1,6 @@
 const questions = [
     { q: "¿Quién es el protagonista de The Legend of Zelda?", options: ["Zelda", "Link", "Ganon", "Tingle"], correct: 1, level: "Fácil" },
-    { q: "¿Cuál es el bloque principal de Minecraft?", options: ["Diamante", "Pasto", "Tierra", "Piedra"], correct: 1, level: "Fácil" }, // CORREGIDO: Pasto es 1
+    { q: "¿Cuál es el bloque principal de Minecraft?", options: ["Diamante", "Pasto", "Tierra", "Piedra"], correct: 1, level: "Fácil" },
     { q: "¿En qué año se lanzó Resident Evil 4 (Original)?", options: ["2004", "2005", "2006", "2003"], correct: 1, level: "Media" },
     { q: "¿Cómo se llama el padre de Kratos en God of War?", options: ["Ares", "Zeus", "Hades", "Poseidón"], correct: 1, level: "Media" },
     { q: "¿Cuál fue el primer nombre de Mario?", options: ["Jumpman", "Mr. Video", "Plumber Man", "Luigi"], correct: 0, level: "Difícil" },
@@ -17,13 +17,15 @@ const gameEl = document.getElementById("game");
 const quizArea = document.getElementById("quiz");
 const gameOverScreen = document.getElementById("game-over-screen");
 
+// 1. ESCUCHAR CLICS EN BOTONES
 document.querySelectorAll(".btn-difficulty").forEach(btn => {
     btn.addEventListener("click", () => {
-        nivelActualLabel = btn.dataset.level; 
+        nivelActualLabel = btn.getAttribute("data-level"); // Guardar dificultad elegida
         iniciarQuiz(nivelActualLabel);
     });
 });
 
+// 2. INICIAR EL JUEGO
 function iniciarQuiz(nivel) {
     if (nivel === "Todas") {
         bancoMezclado = [...questions].sort(() => Math.random() - 0.5);
@@ -33,6 +35,8 @@ function iniciarQuiz(nivel) {
 
     score = 0;
     currentIndex = 0;
+    
+    // Forzar el texto correcto en el cartel azul
     document.getElementById("score-display").innerText = "Puntos: 0";
     document.getElementById("difficulty-badge").innerText = nivelActualLabel; 
     
@@ -44,6 +48,7 @@ function iniciarQuiz(nivel) {
     loadQuestion();
 }
 
+// 3. CARGAR PREGUNTA (SIN TOCAR EL BADGE)
 function loadQuestion() {
     const q = bancoMezclado[currentIndex];
     document.getElementById("question").innerText = q.q;
@@ -60,6 +65,7 @@ function loadQuestion() {
     });
 }
 
+// 4. CHEQUEAR RESPUESTA
 function checkAnswer(index) {
     if (index === bancoMezclado[currentIndex].correct) {
         score += 10;
@@ -68,24 +74,28 @@ function checkAnswer(index) {
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
+            // Pantalla de Ganador
             quizArea.innerHTML = `
-                <h2>¡GG! Completaste el Quiz</h2>
-                <p>Puntaje final: ${score}</p>
-                <button class='btn-option' onclick='volverAlMenu()'>Volver al Menú</button>
+                <h2 style="color: #00feff;">¡GG! Completaste el Quiz</h2>
+                <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
+                <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
             `;
         }
     } else {
+        // Pantalla de Perdedor
         quizArea.style.display = "none";
         gameOverScreen.style.display = "block";
         document.getElementById("score-over").innerText = score;
     }
 }
 
+// 5. RESETEAR TODO PARA VOLVER A JUGAR
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
     
+    // Reconstruir el HTML que borramos al ganar
     quizArea.innerHTML = `
         <h2 id="question">Cargando pregunta...</h2>
         <div id="options-container"></div>
