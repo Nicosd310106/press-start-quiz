@@ -1,3 +1,4 @@
+/* CONFIGURACIÓN BASE */
 body {
     background-color: #0d0221;
     color: #00feff;
@@ -5,7 +6,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
 }
 
@@ -20,51 +21,7 @@ body {
     text-align: center;
 }
 
-#status {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-#difficulty-badge {
-    background: #ff0055;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-weight: bold;
-}
-
-.btn-option {
-    background: transparent;
-    border: 2px solid #00feff;
-    color: #00feff;
-    padding: 15px;
-    width: 100%;
-    margin: 10px 0;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: 0.3s;
-}
-
-.btn-option:hover {
-    background: #00feff;
-    color: #0d0221;
-}
-
-#message {
-    margin-top: 20px;
-    height: 20px;
-    font-weight: bold;
-}
-
-.menu-subtitle {
-    color: #ff0055;
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
+/* MENÚ Y BOTONES */
 .menu-options {
     display: flex;
     flex-direction: column;
@@ -77,14 +34,12 @@ body {
     color: #00feff;
     padding: 14px 18px;
     cursor: pointer;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1rem;
+    font-family: inherit;
     border-radius: 8px;
-    transition: all 0.3s;
+    transition: 0.3s;
     display: flex;
     align-items: center;
     gap: 12px;
-    text-align: left;
 }
 
 .btn-difficulty:hover {
@@ -94,83 +49,50 @@ body {
     box-shadow: 0 0 15px #00feff;
 }
 
-.btn-difficulty .diff-icon {
-    font-size: 1.2rem;
-    min-width: 50px;
-    text-align: center;
+.btn-todas { border-color: #ff0055; color: #ff0055; }
+.btn-todas:hover { background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055; }
+
+/* TRIVIA */
+.btn-option {
+    background: transparent;
+    border: 2px solid #00feff;
+    color: #00feff;
+    padding: 15px;
+    width: 100%;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-.btn-difficulty .diff-label {
-    font-weight: bold;
-    font-size: 1.1rem;
-    min-width: 70px;
-}
+.btn-option:hover { background: #00feff; color: #0d0221; }
 
-.btn-difficulty .diff-desc {
-    font-size: 0.8rem;
+/* PANTALLA GAME OVER */
 #game-over-screen {
     background-color: rgba(15, 10, 10, 0.95);
     border: 4px solid #ff003c;
     box-shadow: 0 0 20px #ff003c, inset 0 0 15px #ff003c;
     padding: 40px;
     border-radius: 20px;
-    text-align: center;
     margin-top: 20px;
-    animation: fadeIn 0.6s ease-out; 
+    animation: fadeIn 0.6s ease-out;
 }
 
 #game-over-screen h2 {
     color: #ff003c;
-    text-shadow: 0 0 15px #ff003c, 0 0 30px #ff003c;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 3.5rem;
-    margin-bottom: 15px;
+    text-shadow: 0 0 15px #ff003c;
+    font-size: 2.5rem;
 }
 
-#game-over-screen p {
-    color: #ffffff;
-    font-size: 1.2rem;
-}
-
-#score-over {
-    color: #22d3ee; 
-    font-weight: bold;
-    font-size: 1.8rem;
-}
-
-#game-over-screen button {
+.btn-retry {
     background: transparent;
     color: #fff;
     border: 2px solid #fff;
     padding: 12px 30px;
-    font-family: 'Orbitron', sans-serif;
     cursor: pointer;
     margin-top: 20px;
-    transition: 0.3s;
 }
-
-#game-over-screen button:hover {
-    background: #fff;
-    color: #ff003c;
-    box-shadow: 0 0 20px #fff;
-    transform: scale(1.1);
-}
-
 
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
-}
-    opacity: 0.7;
-}
-
-.btn-todas {
-    border-color: #ff0055;
-    color: #ff0055;
-}
-
-.btn-todas:hover {
-    background: #ff0055;
-    color: white;
-    box-shadow: 0 0 15px #ff0055;
 }
