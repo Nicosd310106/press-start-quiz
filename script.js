@@ -103,6 +103,18 @@ function volverAlMenu() {
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
+    document.getElementById("quiz").innerHTML = ' <h2 id="question">Cargando pregunta...</h2><div id="options-container"></div>';
+
+    // 1. Ocultamos el tablero de juego
+    gameEl.style.display = "none";
+
+    // 2. Volvemos a mostrar el menú principal
+    menuEl.style.display = "block";
+
+    // 3. ¡ESTO ES LO QUE DEBES AGREGAR!
+    // Asegura que si perdiste, la pantalla roja se oculte para la próxima partida
+    document.getElementById("game-over-screen").style.display = "none";
+}
 
     document.getElementById("quiz").innerHTML = '<h2 id="question">Cargando pregunta...</h2><div id="options-container"></div>';
 
