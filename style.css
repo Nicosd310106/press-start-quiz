@@ -20,6 +20,43 @@ body {
     text-align: center;
 }
 
+#status {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+#difficulty-badge {
+    background: #ff0055;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.btn-option {
+    background: transparent;
+    border: 2px solid #00feff;
+    color: #00feff;
+    padding: 15px;
+    width: 100%;
+    margin: 10px 0;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+.btn-option:hover {
+    background: #00feff;
+    color: #0d0221;
+}
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .btn-difficulty {
     background: transparent;
     border: 2px solid #00feff;
@@ -38,19 +75,14 @@ body {
 .btn-difficulty:hover {
     background: #00feff;
     color: #0d0221;
+    transform: scale(1.03);
     box-shadow: 0 0 15px #00feff;
 }
 
-.btn-option {
-    background: transparent;
-    border: 2px solid #00feff;
-    color: #00feff;
-    padding: 15px;
-    width: 100%;
-    margin: 10px 0;
-    cursor: pointer;
-}
+.btn-todas { border-color: #ff0055; color: #ff0055; }
+.btn-todas:hover { background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055; }
 
+/* PANTALLA GAME OVER */
 #game-over-screen {
     background-color: rgba(15, 10, 10, 0.95);
     border: 4px solid #ff003c;
@@ -60,7 +92,20 @@ body {
     margin-top: 20px;
 }
 
-#game-over-screen h2 { color: #ff003c; font-size: 2.5rem; }
+#game-over-screen h2 {
+    color: #ff003c;
+    text-shadow: 0 0 15px #ff003c;
+    font-size: 2.5rem;
+}
+
+.btn-retry {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 12px 30px;
+    cursor: pointer;
+    margin-top: 20px;
+}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.9); }
