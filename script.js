@@ -67,10 +67,21 @@ function checkAnswer(i) {
         document.getElementById("score-over").innerText = score;
     }
 }
-
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
+    bancoMezclado = [];
+    
+    // IMPORTANTE: Restaurar el HTML original del área de quiz
+    // Esto vuelve a poner el h2 para la pregunta y el div para las opciones
+    quizArea.innerHTML = `
+        <h2 id="question">Cargando pregunta...</h2>
+        <div id="options-container"></div>
+    `;
+    
+    // Resetear la visibilidad de las pantallas
+    quizArea.style.display = "block";
+    gameOverScreen.style.display = "none";
     gameEl.style.display = "none";
     menuEl.style.display = "block";
 }
