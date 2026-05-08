@@ -47,6 +47,11 @@
             <main id="quiz">
                 <h2 id="question">Cargando pregunta...</h2>
                 <div id="options-container"></div>
+                <div id="game-over-screen" style="display: none; text-align: center; border: 3px solid #ff003c; padding: 20px; background: rgba(255, 0, 60, 0.1); border-radius: 15px; margin-top: 20px;">
+    <h2 style="color: #ff003c; text-shadow: 0 0 10px #ff003c; font-family: 'Orbitron', sans-serif; font-size: 40px;">GAME OVER</h2>
+    <p style="color: #fff; font-size: 20px;">Puntaje: <span id="score-over">0</span></p>
+    <button onclick="volverAlMenu()" style="background: transparent; color: #fff; border: 2px solid #fff; padding: 10px 20px; cursor: pointer; font-family: 'Orbitron'; margin-top: 15px;">INSERT COIN</button>
+</div>
             </main>
 
             <div id="message"></div>
