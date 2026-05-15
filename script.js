@@ -1,4 +1,5 @@
 const questions = [
+    // --- FÁCIL ---
     { q: "¿Quién es el protagonista de The Legend of Zelda?", options: ["Zelda", "Link", "Ganon", "Tingle"], correct: 1, level: "Fácil" },
     { q: "¿Cuál es el bloque principal de Minecraft?", options: ["Diamante", "Pasto", "Tierra", "Piedra"], correct: 1, level: "Fácil" },
     { q: "¿En qué consola debutó Super Mario Bros?", options: ["NES", "Sega Genesis", "Atari", "SNES"], correct: 0, level: "Fácil" },
@@ -6,7 +7,7 @@ const questions = [
     { q: "¿Cuál es el color de Pac-Man?", options: ["Rojo", "Azul", "Amarillo", "Verde"], correct: 2, level: "Fácil" },
     { q: "¿Qué animal es Sonic?", options: ["Gato", "Erizo", "Zorro", "Perro"], correct: 1, level: "Fácil" },
     { q: "¿Qué fruta come Pac-Man para poder comer fantasmas?", options: ["Manzana", "Cereza", "Frutilla", "Píldora de energía"], correct: 3, level: "Fácil" },
-    { q: "¿En qué juego de Nintendo usas una aspiradora para cazar fantasmas?", options: ["Mario Kart", "Luigi.s Mansion", "Super Mario Party", "Donkey Kong"], correct: 1, level: "Fácil" },
+    { q: "¿En qué juego de Nintendo usas una aspiradora para cazar fantasmas?", options: ["Mario Kart", "Luigis Mansion", "Super Mario Party", "Donkey Kong"], correct: 1, level: "Fácil" },
     { q: "¿Cómo se llama el reino donde vive la Princesa Peach?", options: ["Reino Champiñón", "Hyrule", "Dream Land", "Isla Delfino"], correct: 0, level: "Fácil" },
     { q: "¿Cuál es el color de la gorra de Luigi?", options: ["Rojo", "Azul", "Verde", "Amarillo"], correct: 2, level: "Fácil" },
     { q: "¿En qué juego construyes ciudades con bloques de colores?", options: ["Minecraft", "Tetris", "Roblox", "LEGO Worlds"], correct: 0, level: "Fácil" },
@@ -14,6 +15,8 @@ const questions = [
     { q: "¿Qué tipo de animal es Donkey Kong?", options: ["Chimpancé", "Gorila", "Orangután", "Mandril"], correct: 1, level: "Fácil" },
     { q: "¿Cómo se llama el arma principal en Star Wars Battlefront?", options: ["Espada láser", "Bláster", "Arco", "Lanza"], correct: 1, level: "Fácil" },
     { q: "¿Cuál es el nombre del perro de Duck Hunt?", options: ["No tiene nombre oficial", "Buster", "Max", "Buddy"], correct: 0, level: "Fácil" },
+
+    // --- MEDIA ---
     { q: "¿En qué año se lanzó Resident Evil 4 (Original)?", options: ["2004", "2005", "2006", "2003"], correct: 1, level: "Media" },
     { q: "¿Cómo se llama el padre de Kratos en God of War?", options: ["Ares", "Zeus", "Hades", "Poseidón"], correct: 1, level: "Media" },
     { q: "¿Cómo se llama la ciudad donde ocurre GTA V?", options: ["Liberty City", "Vice City", "Los Santos", "San Fierro"], correct: 2, level: "Media" },
@@ -29,11 +32,13 @@ const questions = [
     { q: "¿En qué isla transcurre el primer Crash Bandicoot?", options: ["Isla Wumpa", "Isla N. Sanity", "Isla Tortuga", "Isla Mecha"], correct: 1, level: "Media" },
     { q: "¿Cuál es el nombre real del Agente 47?", options: ["Desconocido", "Tobias Rieper", "John Doe", "Arthur"], correct: 1, level: "Media" },
     { q: "¿Quién es el protagonista de Red Dead Redemption 2?", options: ["John Marston", "Arthur Morgan", "Dutch van der Linde", "Bill Williamson"], correct: 1, level: "Media" },
+
+    // --- DIFÍCIL ---
     { q: "¿Cuál fue el primer nombre de Mario?", options: ["Jumpman", "Mr. Video", "Plumber Man", "Luigi"], correct: 0, level: "Difícil" },
     { q: "¿Qué estudio desarrolló el juego 'Bloodborne'?", options: ["Bluepoint", "FromSoftware", "Team Cherry", "Ubisoft"], correct: 1, level: "Difícil" },
     { q: "¿En qué año salió la primera PlayStation en Japón?", options: ["1992", "1994", "1995", "1993"], correct: 1, level: "Difícil" },
     { q: "¿Cuál fue el primer juego en usar la tecnología Mode 7?", options: ["Super Mario World", "F-Zero", "Star Fox", "Pilotwings"], correct: 1, level: "Difícil" },
-    { q: "¿Cómo se llamaba la empresa antes de ser Nintendo?", options: ["Marufuku", "Yamauchi Co.", "Nintendo Playing Card", "Hanafuda Corp"], correct: 0, level: "Difícil" }
+    { q: "¿Cómo se llamaba la empresa antes de ser Nintendo?", options: ["Marufuku", "Yamauchi Co.", "Nintendo Playing Card", "Hanafuda Corp"], correct: 0, level: "Difícil" }, // <- AQUÍ FALTA UNA COMA, YA LA AGREGUÉ
     { q: "¿En qué año se lanzó el primer Castlevania en Japón?", options: ["1984", "1986", "1988", "1985"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llama el primer coloso en Shadow of the Colossus?", options: ["Quadratus", "Valus", "Gaius", "Phaedra"], correct: 1, level: "Difícil" },
     { q: "¿Cuál fue el primer juego de FromSoftware?", options: ["Demons Souls", "Kings Field", "Armored Core", "Dark Souls"], correct: 1, level: "Difícil" },
@@ -43,7 +48,7 @@ const questions = [
     { q: "¿Cómo se llama el planeta natal de los Elites en Halo?", options: ["Reach", "Sanghelios", "Doisac", "Eayn"], correct: 1, level: "Difícil" },
     { q: "¿Qué juego ostenta el récord de ser el más vendido de la historia?", options: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llamaba originalmente el proyecto de la consola Xbox?", options: ["DirectX Box", "Midway", "Project Natal", "Marz"], correct: 0, level: "Difícil" },
-    { q: "¿Cuál es el nombre de la corporación villana en Mirror s Edge?", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
+    { q: "===¿Cuál es el nombre de la corporación villana en Mirrors Edge?===", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
 ];
 
 let bancoMezclado = [];
@@ -59,7 +64,7 @@ const gameOverScreen = document.getElementById("game-over-screen");
 // 1. ESCUCHAR CLICS EN BOTONES
 document.querySelectorAll(".btn-difficulty").forEach(btn => {
     btn.addEventListener("click", () => {
-        nivelActualLabel = btn.getAttribute("data-level"); // Guardar dificultad elegida
+        nivelActualLabel = btn.getAttribute("data-level"); 
         iniciarQuiz(nivelActualLabel);
     });
 });
@@ -75,7 +80,6 @@ function iniciarQuiz(nivel) {
     score = 0;
     currentIndex = 0;
     
-    // Forzar el texto correcto en el cartel azul
     document.getElementById("score-display").innerText = "Puntos: 0";
     document.getElementById("difficulty-badge").innerText = nivelActualLabel; 
     
@@ -132,15 +136,4 @@ function checkAnswer(index) {
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
-    bancoMezclado = [];
-    
-    // Reconstruir el HTML que borramos al ganar
-    quizArea.innerHTML = `
-        <h2 id="question">Cargando pregunta...</h2>
-        <div id="options-container"></div>
-    `;
-    
-    gameEl.style.display = "none";
-    gameOverScreen.style.display = "none";
-    menuEl.style.display = "block";
-}
+    bancoMe
