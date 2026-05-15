@@ -6,7 +6,7 @@ const questions = [
     { q: "¿Cuál es el color de Pac-Man?", options: ["Rojo", "Azul", "Amarillo", "Verde"], correct: 2, level: "Fácil" },
     { q: "¿Qué animal es Sonic?", options: ["Gato", "Erizo", "Zorro", "Perro"], correct: 1, level: "Fácil" },
     { q: "¿Qué fruta come Pac-Man para poder comer fantasmas?", options: ["Manzana", "Cereza", "Frutilla", "Píldora de energía"], correct: 3, level: "Fácil" },
-    { q: "¿En qué juego de Nintendo usas una aspiradora para cazar fantasmas?", options: ["Mario Kart", "Luigi's Mansion", "Super Mario Party", "Donkey Kong"], correct: 1, level: "Fácil" },
+    { q: "¿En qué juego de Nintendo usas una aspiradora para cazar fantasmas?", options: ["Mario Kart", "Luigi.s Mansion", "Super Mario Party", "Donkey Kong"], correct: 1, level: "Fácil" },
     { q: "¿Cómo se llama el reino donde vive la Princesa Peach?", options: ["Reino Champiñón", "Hyrule", "Dream Land", "Isla Delfino"], correct: 0, level: "Fácil" },
     { q: "¿Cuál es el color de la gorra de Luigi?", options: ["Rojo", "Azul", "Verde", "Amarillo"], correct: 2, level: "Fácil" },
     { q: "¿En qué juego construyes ciudades con bloques de colores?", options: ["Minecraft", "Tetris", "Roblox", "LEGO Worlds"], correct: 0, level: "Fácil" },
@@ -36,7 +36,7 @@ const questions = [
     { q: "¿Cómo se llamaba la empresa antes de ser Nintendo?", options: ["Marufuku", "Yamauchi Co.", "Nintendo Playing Card", "Hanafuda Corp"], correct: 0, level: "Difícil" }
     { q: "¿En qué año se lanzó el primer Castlevania en Japón?", options: ["1984", "1986", "1988", "1985"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llama el primer coloso en Shadow of the Colossus?", options: ["Quadratus", "Valus", "Gaius", "Phaedra"], correct: 1, level: "Difícil" },
-    { q: "¿Cuál fue el primer juego de FromSoftware?", options: ["Demon's Souls", "King's Field", "Armored Core", "Dark Souls"], correct: 1, level: "Difícil" },
+    { q: "¿Cuál fue el primer juego de FromSoftware?", options: ["Demons Souls", "Kings Field", "Armored Core", "Dark Souls"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llama la moneda oficial en el juego Fallout?", options: ["Dólares", "Tapas de botella", "Créditos", "Pepitas"], correct: 1, level: "Difícil" },
     { q: "¿En qué lenguaje de programación fue escrito Minecraft originalmente?", options: ["C++", "Python", "Java", "C#"], correct: 2, level: "Difícil" },
     { q: "¿Cuál es el nombre del villano final en Final Fantasy VI?", options: ["Sephiroth", "Kefka", "Exdeath", "Kuja"], correct: 1, level: "Difícil" },
