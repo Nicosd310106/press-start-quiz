@@ -38,7 +38,7 @@ const questions = [
     { q: "¿Qué estudio desarrolló el juego 'Bloodborne'?", options: ["Bluepoint", "FromSoftware", "Team Cherry", "Ubisoft"], correct: 1, level: "Difícil" },
     { q: "¿En qué año salió la primera PlayStation en Japón?", options: ["1992", "1994", "1995", "1993"], correct: 1, level: "Difícil" },
     { q: "¿Cuál fue el primer juego en usar la tecnología Mode 7?", options: ["Super Mario World", "F-Zero", "Star Fox", "Pilotwings"], correct: 1, level: "Difícil" },
-    { q: "¿Cómo se llamaba la empresa antes de ser Nintendo?", options: ["Marufuku", "Yamauchi Co.", "Nintendo Playing Card", "Hanafuda Corp"], correct: 0, level: "Difícil" }, // <- AQUÍ FALTA UNA COMA, YA LA AGREGUÉ
+    { q: "¿Cómo se llamaba la empresa antes de ser Nintendo?", options: ["Marufuku", "Yamauchi Co.", "Nintendo Playing Card", "Hanafuda Corp"], correct: 0, level: "Difícil" },
     { q: "¿En qué año se lanzó el primer Castlevania en Japón?", options: ["1984", "1986", "1988", "1985"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llama el primer coloso en Shadow of the Colossus?", options: ["Quadratus", "Valus", "Gaius", "Phaedra"], correct: 1, level: "Difícil" },
     { q: "¿Cuál fue el primer juego de FromSoftware?", options: ["Demons Souls", "Kings Field", "Armored Core", "Dark Souls"], correct: 1, level: "Difícil" },
@@ -48,7 +48,7 @@ const questions = [
     { q: "¿Cómo se llama el planeta natal de los Elites en Halo?", options: ["Reach", "Sanghelios", "Doisac", "Eayn"], correct: 1, level: "Difícil" },
     { q: "¿Qué juego ostenta el récord de ser el más vendido de la historia?", options: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llamaba originalmente el proyecto de la consola Xbox?", options: ["DirectX Box", "Midway", "Project Natal", "Marz"], correct: 0, level: "Difícil" },
-    { q: "===¿Cuál es el nombre de la corporación villana en Mirrors Edge?===", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
+    { q: "¿Cuál es el nombre de la corporación villana en Mirrors Edge?", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
 ];
 
 let bancoMezclado = [];
@@ -91,7 +91,7 @@ function iniciarQuiz(nivel) {
     loadQuestion();
 }
 
-// 3. CARGAR PREGUNTA (SIN TOCAR EL BADGE)
+// 3. CARGAR PREGUNTA
 function loadQuestion() {
     const q = bancoMezclado[currentIndex];
     document.getElementById("question").innerText = q.q;
@@ -136,4 +136,14 @@ function checkAnswer(index) {
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
-    bancoMe
+    bancoMezclado = [];
+    
+    quizArea.innerHTML = `
+        <h2 id="question">Cargando pregunta...</h2>
+        <div id="options-container"></div>
+    `;
+    
+    gameEl.style.display = "none";
+    gameOverScreen.style.display = "none";
+    menuEl.style.display = "block";
+}
