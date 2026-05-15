@@ -43,7 +43,7 @@ const questions = [
     { q: "¿Cómo se llama el planeta natal de los Elites en Halo?", options: ["Reach", "Sanghelios", "Doisac", "Eayn"], correct: 1, level: "Difícil" },
     { q: "¿Qué juego ostenta el récord de ser el más vendido de la historia?", options: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], correct: 1, level: "Difícil" },
     { q: "¿Cómo se llamaba originalmente el proyecto de la consola Xbox?", options: ["DirectX Box", "Midway", "Project Natal", "Marz"], correct: 0, level: "Difícil" },
-    { q: "¿Cuál es el nombre de la corporación villana en Mirror's Edge?", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
+    { q: "¿Cuál es el nombre de la corporación villana en Mirror s Edge?", options: ["Abstergo", "Umbrella", "Callaghan", "Pirandello Kruger"], correct: 3, level: "Difícil" }
 ];
 
 let bancoMezclado = [];
