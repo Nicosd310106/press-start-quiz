@@ -111,3 +111,22 @@ body {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* --- ESTILOS PARA EL LOGO Retro --- */
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px; /* Separa la cabecera del menú de opciones */
+}
+
+.logo-img {
+    max-width: 160px; /* Tamaño ideal para que calce perfecto en el contenedor */
+    height: auto;
+    margin-bottom: 10px; /* Despega el logo del texto "Press Start Quiz" */
+    
+    /* Mantiene los píxeles súper nítidos y evita que se vea borroso */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
