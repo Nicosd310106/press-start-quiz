@@ -118,15 +118,14 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 25px; /* Separa la cabecera del menú de opciones */
+    margin-bottom: 25px;
 }
 
 .logo-img {
-    max-width: 160px; /* Tamaño ideal para que calce perfecto en el contenedor */
+    max-width: 240px; /* ⬅️ Subimos de 160px a 240px para agrandarlo */
     height: auto;
-    margin-bottom: 10px; /* Despega el logo del texto "Press Start Quiz" */
+    margin-bottom: 10px;
     
-    /* Mantiene los píxeles súper nítidos y evita que se vea borroso */
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
