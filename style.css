@@ -1,5 +1,5 @@
 body {
-    background-color: #0d0221;
+    background-color: #000000; /* Fondo negro puro estilo arcade clásico */
     color: #00feff;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
@@ -10,11 +10,11 @@ body {
 }
 
 .game-container {
-    background: #0f0c29;
+    background: #0b0a12; /* Contenedor oscuro con un toque sutil futurista */
     padding: 2rem;
     border: 3px solid #00feff;
     border-radius: 15px;
-    box-shadow: 0 0 20px #00feff;
+    box-shadow: 0 0 25px rgba(0, 254, 255, 0.4); /* Brillo neón más envolvente */
     width: 90%;
     max-width: 500px;
     text-align: center;
@@ -27,11 +27,12 @@ body {
 }
 
 #difficulty-badge {
-    background: #ff0055;
+    background: #ff0055; /* Fucsia neón vibrante de la presentación */
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
     font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
 }
 
 .btn-option {
@@ -43,12 +44,14 @@ body {
     margin: 10px 0;
     cursor: pointer;
     font-size: 1rem;
+    border-radius: 8px;
     transition: 0.3s;
 }
 
 .btn-option:hover {
     background: #00feff;
-    color: #0d0221;
+    color: #000000;
+    box-shadow: 0 0 15px #00feff;
 }
 
 .menu-options {
@@ -74,19 +77,27 @@ body {
 
 .btn-difficulty:hover {
     background: #00feff;
-    color: #0d0221;
+    color: #000000;
     transform: scale(1.03);
-    box-shadow: 0 0 15px #00feff;
+    box-shadow: 0 0 18px #00feff;
 }
 
-.btn-todas { border-color: #ff0055; color: #ff0055; }
-.btn-todas:hover { background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055; }
+/* Botón de dificultad "Todas" en tono fucsia para contrastar */
+.btn-todas { 
+    border-color: #ff0055; 
+    color: #ff0055; 
+}
+.btn-todas:hover { 
+    background: #ff0055; 
+    color: white; 
+    box-shadow: 0 0 18px #ff0055; 
+}
 
 /* PANTALLA GAME OVER */
 #game-over-screen {
     background-color: rgba(15, 10, 10, 0.95);
     border: 4px solid #ff003c;
-    box-shadow: 0 0 20px #ff003c;
+    box-shadow: 0 0 25px #ff003c;
     padding: 30px;
     border-radius: 20px;
     margin-top: 20px;
@@ -104,7 +115,14 @@ body {
     border: 2px solid #fff;
     padding: 12px 30px;
     cursor: pointer;
-    margin-top: 20px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.btn-retry:hover {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 15px #fff;
 }
 
 @keyframes fadeIn {
@@ -122,10 +140,9 @@ header {
 }
 
 .logo-img {
-    max-width: 240px; /* ⬅️ Subimos de 160px a 240px para agrandarlo */
+    max-width: 240px;
     height: auto;
     margin-bottom: 10px;
-    
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
