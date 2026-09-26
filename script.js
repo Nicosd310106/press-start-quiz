@@ -54,8 +54,8 @@ async function iniciarQuiz(genre, level) {
     `;
 
     try {
-        // PEGA AQUÍ LA URL QUE TE DIO VERCEL (ejemplo: https://tu-proyecto.vercel.app/api/generar)
-        const urlServidorVercel = "https://TU-PROYECTO.vercel.app/api/generar";
+        // ENLACE DIRECTO A TU BACKEND EN VERCEL
+        const urlServidorVercel = "https://press-start-quiz-rd5wrlbnl-nicolasdiaz482-.vercel.app/api/generar";
 
         const respuestaAPI = await fetch(urlServidorVercel, {
             method: "POST",
