@@ -70,7 +70,7 @@ async function iniciarQuiz(genre, level) {
         }
 
         const data = await respuestaAPI.json();
-        
+
         if (!Array.isArray(data) || data.length === 0) {
             throw new Error("El formato recibido no es válido.");
         }
