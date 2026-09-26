@@ -36,7 +36,7 @@ document.querySelectorAll(".btn-difficulty").forEach(btn => {
     });
 });
 
-// 3. INICIAR EL JUEGO Y LLAMAR A LA IA
+// 3. INICIAR EL JUEGO Y LLAMAR A LA IA MEDIANTE PROXY CORS
 async function iniciarQuiz(genre, level) {
     score = 0;
     currentIndex = 0;
@@ -65,11 +65,13 @@ Cada objeto debe tener exactamente estas propiedades:
 - "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
 
         // TU NUEVA CLAVE AQ DIVIDIDA EN DOS PARTES
-        const parte1 = "AQ.Ab8RN6INMfwj3dVOrQ1Ig6DHVYh";
-        const parte2 = "n1SZmfkzCqA8wIarGrGAUaw";
+        const parte1 = "AQ.Ab8RN6K2XShdbXmMnIYuS8aXoapXV4";
+        const parte2 = "Cab0f5Vvf4pD8a_DgALA";
         const tokenAQ = parte1 + parte2;
         
-        const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+        // URL original de Google Gemini envuelta en el Proxy CORS para evitar bloqueos del navegador
+        const urlOriginal = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+        const urlAPI = `https://corsproxy.io/?` + encodeURIComponent(urlOriginal);
 
         const respuestaAPI = await fetch(urlAPI, {
             method: "POST",
@@ -98,12 +100,13 @@ Cada objeto debe tener exactamente estas propiedades:
         console.error("Error al conectar con la API:", error);
         quizArea.innerHTML = `
             <h2 style="color: #ff003c;">ERROR DE CONEXIÓN</h2>
-            <p>No se pudieron generar las preguntas automáticas. Verifica tu clave de API.</p>
+            <p>No se pudieron generar las preguntas automáticas. Verifica tu conexión.</p>
             <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
         `;
     }
 }
 
+// 4. CARGAR PREGUNTA EN PANTALLA
 function loadQuestion() {
     if (!bancoMezclado || bancoMezclado.length === 0) return;
 
@@ -122,6 +125,7 @@ function loadQuestion() {
     });
 }
 
+// 5. CHEQUEAR RESPUESTA
 function checkAnswer(index) {
     if (index === bancoMezclado[currentIndex].correct) {
         score += 10;
@@ -143,6 +147,7 @@ function checkAnswer(index) {
     }
 }
 
+// 6. RESETEAR TODO PARA VOLVER AL MENÚ
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
