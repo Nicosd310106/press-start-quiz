@@ -65,11 +65,11 @@ async function iniciarQuiz(genre, level) {
             body: JSON.stringify({ genre, level })
         });
 
-        if (!respuestaAPI.ok) {
-            throw new Error("Error al conectar con el servidor backend");
-        }
-
         const data = await respuestaAPI.json();
+
+        if (!respuestaAPI.ok) {
+            throw new Error(data.detalle || data.error || "Error desconocido en el servidor");
+        }
 
         if (!Array.isArray(data) || data.length === 0) {
             throw new Error("El formato recibido no es válido.");
