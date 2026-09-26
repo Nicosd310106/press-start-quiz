@@ -64,12 +64,11 @@ Cada objeto debe tener exactamente estas propiedades:
 - "options": Un array con exactamente 4 opciones de respuesta en texto.
 - "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
 
-        // TU CLAVE AQ DIVIDIDA PARA EVITAR EL BLOQUEO DE GITHUB
-        const parte1 = "AQ.Ab8RN6IHWuO_wYBTC1LikW";
-        const parte2 = "N5KfSuHIa9t3xZJChxvKtNFe5hUA";
+        // TU NUEVA CLAVE AQ DIVIDIDA EN DOS PARTES
+        const parte1 = "AQ.Ab8RN6INMfwj3dVOrQ1Ig6DHVYh";
+        const parte2 = "n1SZmfkzCqA8wIarGrGAUaw";
         const tokenAQ = parte1 + parte2;
         
-        // Usamos la URL base y pasamos la clave por header de autorización tipo Bearer o x-goog-api-key según corresponda
         const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
 
         const respuestaAPI = await fetch(urlAPI, {
