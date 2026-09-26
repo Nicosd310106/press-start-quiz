@@ -18,13 +18,12 @@ document.querySelectorAll(".btn-genre").forEach(btn => {
         selectedGenre = btn.getAttribute("data-genre");
         document.getElementById("selected-genre-label").innerText = selectedGenre;
         
-        // Ocultar sección de género y mostrar la de dificultad
         genreSelection.style.display = "none";
         difficultySelection.style.display = "block";
     });
 });
 
-// BOTÓN PARA VOLVER ATRÁS (Cambiar de género)
+// BOTÓN PARA VOLVER ATRÁS
 document.getElementById("btn-back-genre").addEventListener("click", () => {
     difficultySelection.style.display = "none";
     genreSelection.style.display = "block";
@@ -53,7 +52,6 @@ async function iniciarQuiz(genre, level) {
     quizArea.style.display = "block";
     gameOverScreen.style.display = "none";
 
-    // Mostramos un mensaje de carga con estilo mientras la IA genera las preguntas
     document.getElementById("question").innerText = "Generando preguntas con IA...";
     document.getElementById("options-container").innerHTML = `
         <p style="text-align: center; color: #ff0055; font-size: 1.1rem; margin-top: 20px;">
@@ -62,7 +60,6 @@ async function iniciarQuiz(genre, level) {
     `;
 
     try {
-        // Prompt estructurado para exigirle a la IA que devuelva exactamente un JSON limpio
         const promptText = `Genera 5 preguntas de trivia sobre videojuegos de la categoría "${genre}" con un nivel de dificultad "${level}". 
 Devuélveme estrictamente un JSON válido (un array de objetos), sin texto adicional, explicaciones ni bloques de markdown fuera del json. 
 Cada objeto debe tener exactamente estas propiedades:
@@ -73,13 +70,17 @@ Cada objeto debe tener exactamente estas propiedades:
         // CLAVE DIVIDIDA PARA EVITAR EL BLOQUEO DE GITHUB
         const parte1 = "AQ.Ab8RN6IHWuO_wYBTC1LikW";
         const parte2 = "N5KfSuHIa9t3xZJChxvKtNFe5hUA";
-        const apiKey = parte1 + parte2;
+        const accessToken = parte1 + parte2;
         
-        const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // URL limpia sin la clave en el parámetro GET
+        const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
 
         const respuestaAPI = await fetch(urlAPI, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }] }]
             })
@@ -92,13 +93,10 @@ Cada objeto debe tener exactamente estas propiedades:
         }
 
         const textoGenerado = data.candidates[0].content.parts[0].text;
-        
-        // Limpiamos etiquetas de código por si la IA incluye markdown tipo ```json ... ```
         const jsonLimpio = textoGenerado.replace(/```json/g, "").replace(/```/g, "").trim();
         
         bancoMezclado = JSON.parse(jsonLimpio);
 
-        // Cargamos la primera pregunta generada
         loadQuestion();
 
     } catch (error) {
@@ -139,7 +137,6 @@ function checkAnswer(index) {
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            // Pantalla de Victoria al terminar las preguntas de la ronda
             quizArea.innerHTML = `
                 <h2 style="color: #00feff; text-shadow: 0 0 10px #00feff;">¡GG! RONDA SUPERADA</h2>
                 <p style="font-size: 1.5rem; margin: 20px 0;">Puntaje final: ${score}</p>
@@ -147,7 +144,6 @@ function checkAnswer(index) {
             `;
         }
     } else {
-        // Pantalla de Game Over si falla
         quizArea.style.display = "none";
         gameOverScreen.style.display = "block";
         document.getElementById("score-over").innerText = score;
@@ -169,6 +165,6 @@ function volverAlMenu() {
 
     gameEl.style.display = "none";
     gameOverScreen.style.display = "none";
-    genreSelection.style.display = "block"; // Volver al paso 1 de géneros
+    genreSelection.style.display = "block";
     menuEl.style.display = "block";
 }
