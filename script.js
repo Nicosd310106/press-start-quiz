@@ -12,7 +12,6 @@ const gameEl = document.getElementById("game");
 const quizArea = document.getElementById("quiz");
 const gameOverScreen = document.getElementById("game-over-screen");
 
-// 1. ESCUCHAR CLICS EN LOS BOTONES DE GÉNERO
 document.querySelectorAll(".btn-genre").forEach(btn => {
     btn.addEventListener("click", () => {
         selectedGenre = btn.getAttribute("data-genre");
@@ -27,7 +26,6 @@ document.getElementById("btn-back-genre").addEventListener("click", () => {
     genreSelection.style.display = "block";
 });
 
-// 2. ESCUCHAR CLICS EN LOS BOTONES DE DIFICULTAD
 document.querySelectorAll(".btn-difficulty").forEach(btn => {
     btn.addEventListener("click", () => {
         selectedLevel = btn.getAttribute("data-level");
@@ -36,7 +34,6 @@ document.querySelectorAll(".btn-difficulty").forEach(btn => {
     });
 });
 
-// 3. INICIAR EL JUEGO Y LLAMAR A LA IA MEDIANTE PROXY CORS
 async function iniciarQuiz(genre, level) {
     score = 0;
     currentIndex = 0;
@@ -51,62 +48,46 @@ async function iniciarQuiz(genre, level) {
 
     document.getElementById("question").innerText = "Generando preguntas con IA...";
     document.getElementById("options-container").innerHTML = `
-        <p style="text-align: center; color: #ff0055; font-size: 1.1rem; margin-top: 20px;">
-            Conectando con el arcade matrix... por favor espera 🎮
+        <p style="text-align: center; color: #00feff; font-size: 1.1rem; margin-top: 20px;">
+            Conectando con el servidor arcade... 🎮
         </p>
     `;
 
     try {
-        const promptText = `Genera 5 preguntas de trivia sobre videojuegos de la categoría "${genre}" con un nivel de dificultad "${level}". 
-Devuélveme estrictamente un JSON válido (un array de objetos), sin texto adicional, explicaciones ni bloques de markdown fuera del json. 
-Cada objeto debe tener exactamente estas propiedades:
-- "q": El texto de la pregunta.
-- "options": Un array con exactamente 4 opciones de respuesta en texto.
-- "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
+        // PEGA AQUÍ LA URL QUE TE DIO VERCEL (ejemplo: https://tu-proyecto.vercel.app/api/generar)
+        const urlServidorVercel = "https://TU-PROYECTO.vercel.app/api/generar";
 
-        // TU NUEVA CLAVE AQ DIVIDIDA EN DOS PARTES
-        const parte1 = "AQ.Ab8RN6K2XShdbXmMnIYuS8aXoapXV4";
-        const parte2 = "Cab0f5Vvf4pD8a_DgALA";
-        const tokenAQ = parte1 + parte2;
-        
-        // URL original de Google Gemini envuelta en el Proxy CORS para evitar bloqueos del navegador
-        const urlOriginal = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
-        const urlAPI = `https://corsproxy.io/?` + encodeURIComponent(urlOriginal);
-
-        const respuestaAPI = await fetch(urlAPI, {
+        const respuestaAPI = await fetch(urlServidorVercel, {
             method: "POST",
             headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${tokenAQ}`
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
+            body: JSON.stringify({ genre, level })
         });
+
+        if (!respuestaAPI.ok) {
+            throw new Error("Error al conectar con el servidor backend");
+        }
 
         const data = await respuestaAPI.json();
         
-        if (!data.candidates || data.candidates.length === 0) {
-            throw new Error("No se recibieron datos válidos de la IA.");
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("El formato recibido no es válido.");
         }
 
-        const textoGenerado = data.candidates[0].content.parts[0].text;
-        const jsonLimpio = textoGenerado.replace(/```json/g, "").replace(/```/g, "").trim();
-        
-        bancoMezclado = JSON.parse(jsonLimpio);
+        bancoMezclado = data;
         loadQuestion();
 
     } catch (error) {
-        console.error("Error al conectar con la API:", error);
+        console.error("Error:", error);
         quizArea.innerHTML = `
             <h2 style="color: #ff003c;">ERROR DE CONEXIÓN</h2>
-            <p>No se pudieron generar las preguntas automáticas. Verifica tu conexión.</p>
+            <p>No se pudieron generar las preguntas automáticas en tiempo real.</p>
             <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
         `;
     }
 }
 
-// 4. CARGAR PREGUNTA EN PANTALLA
 function loadQuestion() {
     if (!bancoMezclado || bancoMezclado.length === 0) return;
 
@@ -125,7 +106,6 @@ function loadQuestion() {
     });
 }
 
-// 5. CHEQUEAR RESPUESTA
 function checkAnswer(index) {
     if (index === bancoMezclado[currentIndex].correct) {
         score += 10;
@@ -147,7 +127,6 @@ function checkAnswer(index) {
     }
 }
 
-// 6. RESETEAR TODO PARA VOLVER AL MENÚ
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
