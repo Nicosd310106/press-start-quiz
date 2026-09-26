@@ -1,5 +1,5 @@
 body {
-    background-color: #000000; /* Fondo negro puro estilo arcade clásico */
+    background-color: #000000; /* Fondo negro puro */
     color: #00feff;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
@@ -10,11 +10,12 @@ body {
 }
 
 .game-container {
-    background: #0b0a12; /* Contenedor oscuro con un toque sutil futurista */
+    background: #050508; 
     padding: 2rem;
-    border: 3px solid #00feff;
+    border: 3px solid #ff0055; /* Borde principal fucsia vibrante */
     border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0, 254, 255, 0.4); /* Brillo neón más envolvente */
+    /* Doble brillo neón envolvente (Cian y Fucsia) */
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.2); 
     width: 90%;
     max-width: 500px;
     text-align: center;
@@ -27,16 +28,16 @@ body {
 }
 
 #difficulty-badge {
-    background: #ff0055; /* Fucsia neón vibrante de la presentación */
+    background: #ff0055;
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
     font-weight: bold;
-    box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+    box-shadow: 0 0 10px #ff0055;
 }
 
 .btn-option {
-    background: transparent;
+    background: rgba(0, 254, 255, 0.05);
     border: 2px solid #00feff;
     color: #00feff;
     padding: 15px;
@@ -46,12 +47,15 @@ body {
     font-size: 1rem;
     border-radius: 8px;
     transition: 0.3s;
+    font-family: inherit;
+    font-weight: bold;
 }
 
 .btn-option:hover {
     background: #00feff;
     color: #000000;
-    box-shadow: 0 0 15px #00feff;
+    box-shadow: 0 0 20px #00feff, 0 0 40px #00feff;
+    transform: scale(1.02);
 }
 
 .menu-options {
@@ -60,68 +64,49 @@ body {
     gap: 12px;
 }
 
-/* --- ESTILOS PARA LOS BOTONES DE GÉNERO (NUEVO) --- */
-.btn-genre {
-    background: transparent;
-    border: 2px solid #00feff;
-    color: #00feff;
+/* --- BOTONES DE GÉNERO Y DIFICULTAD ESTILO NEÓN ARCADE --- */
+.btn-genre, .btn-difficulty {
+    background: rgba(255, 0, 85, 0.05);
+    border: 2px solid #ff0055; /* Borde fucsia base estilo la palanca */
+    color: #ffffff;
     padding: 14px 18px;
     cursor: pointer;
     font-family: inherit;
     border-radius: 8px;
-    transition: 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 12px;
     width: 100%;
     font-size: 1rem;
+    box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
 }
 
-.btn-genre:hover {
-    background: #00feff;
+.btn-genre:hover, .btn-difficulty:hover {
+    background: #ff0055;
     color: #000000;
     transform: scale(1.03);
-    box-shadow: 0 0 18px #00feff;
+    box-shadow: 0 0 20px #ff0055, 0 0 35px #ff0055;
+    font-weight: bold;
 }
 
-.btn-difficulty {
-    background: transparent;
-    border: 2px solid #00feff;
-    color: #00feff;
-    padding: 14px 18px;
-    cursor: pointer;
-    font-family: inherit;
-    border-radius: 8px;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-}
-
-.btn-difficulty:hover {
-    background: #00feff;
-    color: #000000;
-    transform: scale(1.03);
-    box-shadow: 0 0 18px #00feff;
-}
-
-/* Botón de dificultad "Todas" en tono fucsia para contrastar */
+/* Botón de dificultad "Todas" con toque amarillo/cian de contraste */
 .btn-todas { 
-    border-color: #ff0055; 
-    color: #ff0055; 
+    border-color: #ffe600 !important; 
+    color: #ffe600 !important; 
+    box-shadow: 0 0 8px rgba(255, 230, 0, 0.3);
 }
 .btn-todas:hover { 
-    background: #ff0055; 
-    color: white; 
-    box-shadow: 0 0 18px #ff0055; 
+    background: #ffe600 !important; 
+    color: #000000 !important; 
+    box-shadow: 0 0 20px #ffe600, 0 0 35px #ffe600 !important; 
 }
 
 /* PANTALLA GAME OVER */
 #game-over-screen {
-    background-color: rgba(15, 10, 10, 0.95);
+    background-color: rgba(10, 5, 8, 0.95);
     border: 4px solid #ff003c;
-    box-shadow: 0 0 25px #ff003c;
+    box-shadow: 0 0 30px #ff003c, inset 0 0 20px rgba(255, 0, 60, 0.4);
     padding: 30px;
     border-radius: 20px;
     margin-top: 20px;
@@ -129,8 +114,10 @@ body {
 
 #game-over-screen h2 {
     color: #ff003c;
-    text-shadow: 0 0 15px #ff003c;
+    /* Efecto de texto con sombra múltiple estilo glitch de la imagen */
+    text-shadow: 3px 3px 0px #00feff, -3px -3px 0px #ffe600;
     font-size: 2.5rem;
+    letter-spacing: 2px;
 }
 
 .btn-retry {
@@ -141,12 +128,14 @@ body {
     cursor: pointer;
     border-radius: 8px;
     transition: 0.3s;
+    font-family: inherit;
+    font-weight: bold;
 }
 
 .btn-retry:hover {
     background: #fff;
     color: #000;
-    box-shadow: 0 0 15px #fff;
+    box-shadow: 0 0 20px #fff;
 }
 
 @keyframes fadeIn {
@@ -154,7 +143,7 @@ body {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* --- ESTILOS PARA EL LOGO Retro --- */
+/* --- ESTILOS PARA EL LOGO Retro con onda Glitch --- */
 header {
     display: flex;
     flex-direction: column;
@@ -169,4 +158,6 @@ header {
     margin-bottom: 10px;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    /* Pequeño brillo alrededor del logo para integrarlo al ambiente */
+    filter: drop-shadow(0 0 10px rgba(0, 254, 255, 0.4));
 }
