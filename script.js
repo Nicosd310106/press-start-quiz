@@ -81,8 +81,8 @@ async function iniciarQuiz(genre, level) {
     } catch (error) {
         console.error("Error:", error);
         quizArea.innerHTML = `
-            <h2 style="color: #ff003c;">ERROR DE CONEXIÓN</h2>
-            <p>No se pudieron generar las preguntas automáticas en tiempo real.</p>
+            <h2 style="color: #ff003c;">ERROR:</h2>
+            <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
             <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
         `;
     }
