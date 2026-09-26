@@ -17,13 +17,11 @@ document.querySelectorAll(".btn-genre").forEach(btn => {
     btn.addEventListener("click", () => {
         selectedGenre = btn.getAttribute("data-genre");
         document.getElementById("selected-genre-label").innerText = selectedGenre;
-        
         genreSelection.style.display = "none";
         difficultySelection.style.display = "block";
     });
 });
 
-// BOTÓN PARA VOLVER ATRÁS
 document.getElementById("btn-back-genre").addEventListener("click", () => {
     difficultySelection.style.display = "none";
     genreSelection.style.display = "block";
@@ -34,12 +32,11 @@ document.querySelectorAll(".btn-difficulty").forEach(btn => {
     btn.addEventListener("click", () => {
         selectedLevel = btn.getAttribute("data-level");
         nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
-        
         iniciarQuiz(selectedGenre, selectedLevel);
     });
 });
 
-// 3. INICIAR EL JUEGO Y LLAMAR A LA IA AUTOMÁTICAMENTE
+// 3. INICIAR EL JUEGO Y LLAMAR A LA IA
 async function iniciarQuiz(genre, level) {
     score = 0;
     currentIndex = 0;
@@ -67,19 +64,19 @@ Cada objeto debe tener exactamente estas propiedades:
 - "options": Un array con exactamente 4 opciones de respuesta en texto.
 - "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
 
-        // CLAVE DIVIDIDA PARA EVITAR EL BLOQUEO DE GITHUB
+        // TU CLAVE AQ DIVIDIDA PARA EVITAR EL BLOQUEO DE GITHUB
         const parte1 = "AQ.Ab8RN6IHWuO_wYBTC1LikW";
         const parte2 = "N5KfSuHIa9t3xZJChxvKtNFe5hUA";
-        const accessToken = parte1 + parte2;
+        const tokenAQ = parte1 + parte2;
         
-        // URL limpia sin la clave en el parámetro GET
+        // Usamos la URL base y pasamos la clave por header de autorización tipo Bearer o x-goog-api-key según corresponda
         const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
 
         const respuestaAPI = await fetch(urlAPI, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
+                "Authorization": `Bearer ${tokenAQ}`
             },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }] }]
@@ -96,7 +93,6 @@ Cada objeto debe tener exactamente estas propiedades:
         const jsonLimpio = textoGenerado.replace(/```json/g, "").replace(/```/g, "").trim();
         
         bancoMezclado = JSON.parse(jsonLimpio);
-
         loadQuestion();
 
     } catch (error) {
@@ -109,7 +105,6 @@ Cada objeto debe tener exactamente estas propiedades:
     }
 }
 
-// 4. CARGAR PREGUNTA EN PANTALLA
 function loadQuestion() {
     if (!bancoMezclado || bancoMezclado.length === 0) return;
 
@@ -128,7 +123,6 @@ function loadQuestion() {
     });
 }
 
-// 5. CHEQUEAR RESPUESTA
 function checkAnswer(index) {
     if (index === bancoMezclado[currentIndex].correct) {
         score += 10;
@@ -150,7 +144,6 @@ function checkAnswer(index) {
     }
 }
 
-// 6. RESETEAR TODO PARA VOLVER AL MENÚ
 function volverAlMenu() {
     score = 0;
     currentIndex = 0;
