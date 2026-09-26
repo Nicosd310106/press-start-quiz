@@ -54,20 +54,18 @@ async function iniciarQuiz(genre, level) {
     `;
 
     try {
-        // ENLACE DIRECTO A TU BACKEND EN VERCEL
-        const urlServidorVercel = "https://press-start-quiz.vercel.app/api/generar";
-
-        const respuestaAPI = await fetch(urlServidorVercel, {
-            method: "POST",
+        // Petición directa al servidor backend en Vercel
+        const response = await fetch('https://press-start-quiz.vercel.app/api/generar', {
+            method: 'POST',
             headers: { 
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json' 
             },
             body: JSON.stringify({ genre, level })
         });
 
-        const data = await respuestaAPI.json();
+        const data = await response.json();
 
-        if (!respuestaAPI.ok) {
+        if (!response.ok) {
             throw new Error(data.detalle || data.error || "Error desconocido en el servidor");
         }
 
