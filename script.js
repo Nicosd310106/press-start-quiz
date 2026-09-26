@@ -40,14 +40,8 @@ document.querySelectorAll(".btn-difficulty").forEach(btn => {
     });
 });
 
-// 3. INICIAR EL JUEGO (Filtrando por Género y Dificultad)
-function iniciarQuiz(genre, level) {
-    // NOTA: Por ahora, como todavía estamos adaptando la estructura, 
-    // usaremos un filtro local o simulado. En el siguiente paso conectaremos la API.
-    
-    // Si tenías un array de preguntas local, aquí haríamos el filtro:
-    // const filtradas = questions.filter(q => q.genre === genre && (level === "Todas" || q.level === level));
-    
+// 3. INICIAR EL JUEGO Y LLAMAR A LA IA AUTOMÁTICAMENTE
+async function iniciarQuiz(genre, level) {
     score = 0;
     currentIndex = 0;
 
@@ -59,17 +53,65 @@ function iniciarQuiz(genre, level) {
     quizArea.style.display = "block";
     gameOverScreen.style.display = "none";
 
-    // Simulamos unas preguntas iniciales para probar que la navegación funcione perfecta en el celu
-    bancoMezclado = [
-        { q: `Pregunta de prueba 1 sobre ${genre} (${level})`, options: ["Opción A", "Opción B", "Opción C", "Opción D"], correct: 1 },
-        { q: `Pregunta de prueba 2 sobre ${genre} (${level})`, options: ["Opción 1", "Opción 2", "Opción 3", "Opción 4"], correct: 0 }
-    ];
+    // Mostramos un mensaje de carga con estilo mientras la IA genera las preguntas
+    document.getElementById("question").innerText = "Generando preguntas con IA...";
+    document.getElementById("options-container").innerHTML = `
+        <p style="text-align: center; color: #ff0055; font-size: 1.1rem; margin-top: 20px;">
+            Conectando con el arcade matrix... por favor espera 🎮
+        </p>
+    `;
 
-    loadQuestion();
+    try {
+        // Prompt estructurado para exigirle a la IA que devuelva exactamente un JSON limpio
+        const promptText = `Genera 5 preguntas de trivia sobre videojuegos de la categoría "${genre}" con un nivel de dificultad "${level}". 
+Devuélveme estrictamente un JSON válido (un array de objetos), sin texto adicional, explicaciones ni bloques de markdown fuera del json. 
+Cada objeto debe tener exactamente estas propiedades:
+- "q": El texto de la pregunta.
+- "options": Un array con exactamente 4 opciones de respuesta en texto.
+- "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
+
+        // REEMPLAZA "AQUI_PEGAS_TU_CLAVE_REAL" CON TU API KEY DE GOOGLE AI STUDIO
+        const apiKey = "AQUI_PEGAS_TU_CLAVE_REAL";
+        const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const respuestaAPI = await fetch(urlAPI, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+            })
+        });
+
+        const data = await respuestaAPI.json();
+        
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("No se recibieron datos válidos de la IA.");
+        }
+
+        const textoGenerado = data.candidates[0].content.parts[0].text;
+        
+        // Limpiamos etiquetas de código por si la IA incluye markdown tipo ```json ... ```
+        const jsonLimpio = textoGenerado.replace(/```json/g, "").replace(/```/g, "").trim();
+        
+        bancoMezclado = JSON.parse(jsonLimpio);
+
+        // Cargamos la primera pregunta generada
+        loadQuestion();
+
+    } catch (error) {
+        console.error("Error al conectar con la API:", error);
+        quizArea.innerHTML = `
+            <h2 style="color: #ff003c;">ERROR DE CONEXIÓN</h2>
+            <p>No se pudieron generar las preguntas automáticas. Verifica tu clave de API.</p>
+            <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
+        `;
+    }
 }
 
-// 4. CARGAR PREGUNTA
+// 4. CARGAR PREGUNTA EN PANTALLA
 function loadQuestion() {
+    if (!bancoMezclado || bancoMezclado.length === 0) return;
+
     const q = bancoMezclado[currentIndex];
     document.getElementById("question").innerText = q.q;
 
@@ -94,15 +136,15 @@ function checkAnswer(index) {
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            // Pantalla de Victoria / Fin del bloque de prueba
+            // Pantalla de Victoria al terminar las preguntas de la ronda
             quizArea.innerHTML = `
-                <h2 style="color: #00feff;">¡GG! Completaste esta ronda</h2>
-                <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
-                <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
+                <h2 style="color: #00feff; text-shadow: 0 0 10px #00feff;">¡GG! RONDA SUPERADA</h2>
+                <p style="font-size: 1.5rem; margin: 20px 0;">Puntaje final: ${score}</p>
+                <button class='btn-option' onclick='volverAlMenu()'>INSERT COIN (VOLVER)</button>
             `;
         }
     } else {
-        // Pantalla de Perdedor (Game Over)
+        // Pantalla de Game Over si falla
         quizArea.style.display = "none";
         gameOverScreen.style.display = "block";
         document.getElementById("score-over").innerText = score;
