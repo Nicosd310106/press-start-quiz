@@ -13,30 +13,82 @@
               <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
                 <h1>Press Start Quiz</h1>
             </header>
-        
+
         <div id="menu">
-            <p class="menu-subtitle">Elige tu dificultad</p>
-            <div class="menu-options">
-                <button class="btn-difficulty" data-level="Fácil">
-                    <span class="diff-icon">★</span>
-                    <span class="diff-label">Fácil</span>
-                    <span class="diff-desc">Para calentar motores</span>
-                </button>
-                <button class="btn-difficulty" data-level="Media">
-                    <span class="diff-icon">★★</span>
-                    <span class="diff-label">Media</span>
-                    <span class="diff-desc">Para jugadores casuales</span>
-                </button>
-                <button class="btn-difficulty" data-level="Difícil">
-                    <span class="diff-icon">★★★</span>
-                    <span class="diff-label">Difícil</span>
-                    <span class="diff-desc">Solo para veteranos</span>
-                </button>
-                <button class="btn-difficulty btn-todas" data-level="Todas">
-                    <span class="diff-icon">🎮</span>
-                    <span class="diff-label">Todas</span>
-                    <span class="diff-desc">Mezcla de todo nivel</span>
-                </button>
+            <!-- PASO 1: Selección de Género -->
+            <div id="genre-selection">
+                <p class="menu-subtitle">Elige el género de videojuegos</p>
+                <div class="menu-options" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                    <button class="btn-genre" data-genre="Survival Horror">
+                        <span class="diff-icon">🧟</span>
+                        <span class="diff-label">Survival Horror</span>
+                    </button>
+                    <button class="btn-genre" data-genre="RPG">
+                        <span class="diff-icon">⚔️</span>
+                        <span class="diff-label">RPG</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Acción y Aventura">
+                        <span class="diff-icon">🔥</span>
+                        <span class="diff-label">Acción y Aventura</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Shooter">
+                        <span class="diff-icon">🎯</span>
+                        <span class="diff-label">Shooter / Disparos</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Lucha">
+                        <span class="diff-icon">🥊</span>
+                        <span class="diff-label">Lucha / Peleas</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Plataformas">
+                        <span class="diff-icon">🍄</span>
+                        <span class="diff-label">Plataformas</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Estrategia">
+                        <span class="diff-icon">♟️</span>
+                        <span class="diff-label">Estrategia</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Simulación">
+                        <span class="diff-icon">🏗️</span>
+                        <span class="diff-label">Simulación</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Carreras">
+                        <span class="diff-icon">🏎️</span>
+                        <span class="diff-label">Carreras</span>
+                    </button>
+                    <button class="btn-genre" data-genre="Deportes">
+                        <span class="diff-icon">⚽</span>
+                        <span class="diff-label">Deportes</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 2: Selección de Dificultad (Oculto inicialmente) -->
+            <div id="difficulty-selection" style="display: none;">
+                <p class="menu-subtitle">Género: <span id="selected-genre-label" style="color: #ff0055;"></span></p>
+                <p class="menu-subtitle">Elige tu dificultad</p>
+                <div class="menu-options">
+                    <button class="btn-difficulty" data-level="Fácil">
+                        <span class="diff-icon">★</span>
+                        <span class="diff-label">Fácil</span>
+                        <span class="diff-desc">Para calentar motores</span>
+                    </button>
+                    <button class="btn-difficulty" data-level="Media">
+                        <span class="diff-icon">★★</span>
+                        <span class="diff-label">Media</span>
+                        <span class="diff-desc">Para jugadores casuales</span>
+                    </button>
+                    <button class="btn-difficulty" data-level="Difícil">
+                        <span class="diff-icon">★★★</span>
+                        <span class="diff-label">Difícil</span>
+                        <span class="diff-desc">Solo para veteranos</span>
+                    </button>
+                    <button class="btn-difficulty btn-todas" data-level="Todas">
+                        <span class="diff-icon">🎮</span>
+                        <span class="diff-label">Todas</span>
+                        <span class="diff-desc">Mezcla de todo nivel</span>
+                    </button>
+                </div>
+                <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
             </div>
         </div>
 
