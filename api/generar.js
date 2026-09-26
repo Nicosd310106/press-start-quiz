@@ -1,57 +1,56 @@
+import { GoogleGenAI } from "@google/genai";
+
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Configurar cabeceras CORS para permitir peticiones desde GitHub Pages
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*'); // O puedes poner tu enlace exacto de GitHub si prefieres
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+  // Responder automáticamente a las peticiones de tipo OPTIONS (pre-flight de CORS)
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
 
-    const { genre, level } = req.body;
+  const { genre, level } = req.body;
 
-    const promptText = `Genera 5 preguntas de trivia sobre videojuegos de la categoría "${genre}" con un nivel de dificultad "${level}". 
-Devuélveme estrictamente un JSON válido (un array de objetos), sin texto adicional, explicaciones ni bloques de markdown fuera del json. 
-Cada objeto debe tener exactamente estas propiedades:
-- "q": El texto de la pregunta.
-- "options": Un array con exactamente 4 opciones de respuesta en texto.
-- "correct": Un número entero del 0 al 3 que indique la posición de la opción correcta dentro del array "options".`;
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    
+    const prompt = `Genera un cuestionario de trivia de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". 
+    La respuesta debe ser estrictamente un JSON válido que sea un arreglo de objetos, sin texto adicional, sin bloques de código markdown (\`\`\`json), con esta estructura exacta:
+    [
+      {
+        "q": "¿Pregunta aquí?",
+        "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+        "correct": 0
+      }
+    ]
+    Donde "correct" es el índice numérico de la opción correcta (de 0 a 3).`;
 
-    try {
-        const parte1 = "AQ.Ab8RN6K2XShdbXmMnIYuS8aXoapXV4";
-        const parte2 = "Cab0f5Vvf4pD8a_DgALA";
-        const tokenAQ = parte1 + parte2;
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
 
-        const urlAPI = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+    let text = response.text.trim();
+    
+    // Limpieza por si la IA devuelve bloques de código
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-        const respuestaGoogle = await fetch(urlAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${tokenAQ}`
-            },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
-        });
+    const questions = JSON.parse(text);
+    return res.status(200).json(questions);
 
-        const data = await respuestaGoogle.json();
-
-        if (!data.candidates || data.candidates.length === 0) {
-            throw new Error("No se recibieron datos de la IA");
-        }
-
-        const textoGenerado = data.candidates[0].content.parts[0].text;
-        const jsonLimpio = textoGenerado.replace(/```json/g, "").replace(/```/g, "").trim();
-        const preguntasJSON = JSON.parse(jsonLimpio);
-
-        return res.status(200).json(preguntasJSON);
-
-    } catch (error) {
-        console.error("Error en el servidor:", error);
-        return res.status(500).json({ error: "Fallo al generar preguntas con la IA" });
-    }
+  } catch (error) {
+    console.error("Error en la API:", error);
+    return res.status(500).json({ error: "Error al generar preguntas con la IA", detalle: error.message });
+  }
 }
