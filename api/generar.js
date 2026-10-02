@@ -55,14 +55,17 @@ export default async function handler(req, res) {
       },
     };
 
-   // POR ESTO:
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-002",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
+  // OPCIÓN RECOMENDADA Y MÁS ESTABLE
+    const model = genAI.getGenerativeModel(
+      {
+        model: "gemini-2.0-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema,
+        },
       },
-    });
+      { apiVersion: "v1beta" }
+    );
 
     const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que 1 opción sea correcta y 3 incorrectas pero creíbles.`;
 
