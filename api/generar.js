@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-  // Configuración de Cabeceras CORS para GitHub Pages
+  // Configuración de Cabeceras CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // Petición OPTIONS para pre-flight CORS
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -28,7 +27,6 @@ export default async function handler(req, res) {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    // Esquema estricto para forzar JSON válido
     const schema = {
       type: SchemaType.ARRAY,
       description: "Lista de 5 preguntas de trivia",
@@ -55,7 +53,7 @@ export default async function handler(req, res) {
       },
     };
 
-  // OPCIÓN RECOMENDADA Y MÁS ESTABLE
+    // Inicialización explícita con apiVersion
     const model = genAI.getGenerativeModel(
       {
         model: "gemini-2.0-flash",
@@ -70,7 +68,7 @@ export default async function handler(req, res) {
     const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que 1 opción sea correcta y 3 incorrectas pero creíbles.`;
 
     const result = await model.generateContent(prompt);
-const questions = JSON.parse(result.response.text());
+    const questions = JSON.parse(result.response.text());
 
     return res.status(200).json(questions);
 
