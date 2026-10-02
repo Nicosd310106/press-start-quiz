@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
   // Configuración de Cabeceras CORS
@@ -20,54 +20,35 @@ export default async function handler(req, res) {
 
   let { genre, level } = req.body || {};
 
-  // Asegurar valores por defecto si no vienen seleccionados correctamente
   if (!genre || genre.trim() === "") genre = "General";
   if (!level || level.trim() === "") level = "Todas";
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    const schema = {
-      type: SchemaType.ARRAY,
-      description: "Lista de 5 preguntas de trivia",
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          q: {
-            type: SchemaType.STRING,
-            description: "Pregunta de trivia sobre videojuegos",
-          },
-          options: {
-            type: SchemaType.ARRAY,
-            description: "Arreglo exactamente de 4 opciones de respuesta",
-            items: {
-              type: SchemaType.STRING,
-            },
-          },
-          correct: {
-            type: SchemaType.INTEGER,
-            description: "Índice de la opción correcta (entre 0 y 3)",
-          },
-        },
-        required: ["q", "options", "correct"],
-      },
-    };
+    // Usamos gemini-1.5-flash con respuesta JSON forzada por la respuesta del modelo
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
-   // Usamos el alias oficial de la API v1
-    const model = genAI.getGenerativeModel(
-      {
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-        },
-      },
-      { apiVersion: "v1" } // Especificamos la versión estable v1
-    );
-    const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que exactamente 1 opción sea correcta y 3 incorrectas pero creíbles.`;
+    const prompt = `Genera un JSON estrictamente válido que contenga una lista de 5 preguntas de trivia gamer sobre el género "${genre}" y dificultad "${level}".
+El formato DEBE ser un arreglo JSON con objetos que tengan exactamente esta estructura:
+[
+  {
+    "q": "Texto de la pregunta",
+    "options": ["Opción 0", "Opción 1", "Opción 2", "Opción 3"],
+    "correct": 0
+  }
+]
+Responde ÚNICAMENTE con el código JSON sin texto adicional ni bloques de formato markdown.`;
 
     const result = await model.generateContent(prompt);
-    const questions = JSON.parse(result.response.text());
+    const textResponse = result.response.text();
+    
+    // Limpiamos por si la IA devuelve etiquetas tipo ```json ... ```
+    const cleanJson = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+    const questions = JSON.parse(cleanJson);
 
     return res.status(200).json(questions);
 
