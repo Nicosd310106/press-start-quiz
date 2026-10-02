@@ -18,11 +18,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  const { genre, level } = req.body;
+  let { genre, level } = req.body || {};
 
-  if (!genre || !level) {
-    return res.status(400).json({ error: "Faltan los parámetros 'genre' o 'level'" });
-  }
+  // Asegurar valores por defecto si no vienen seleccionados correctamente
+  if (!genre || genre.trim() === "") genre = "General";
+  if (!level || level.trim() === "") level = "Todas";
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
           },
           options: {
             type: SchemaType.ARRAY,
-            description: "Arreglo de 4 opciones de respuesta",
+            description: "Arreglo exactamente de 4 opciones de respuesta",
             items: {
               type: SchemaType.STRING,
             },
@@ -53,19 +53,16 @@ export default async function handler(req, res) {
       },
     };
 
-    // Inicialización explícita con apiVersion
-    const model = genAI.getGenerativeModel(
-      {
-        model: "gemini-2.0-flash",
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-        },
+    // Usamos el modelo gemini-2.5-flash
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: schema,
       },
-      { apiVersion: "v1beta" }
-    );
+    });
 
-    const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que 1 opción sea correcta y 3 incorrectas pero creíbles.`;
+    const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que exactamente 1 opción sea correcta y 3 incorrectas pero creíbles.`;
 
     const result = await model.generateContent(prompt);
     const questions = JSON.parse(result.response.text());
