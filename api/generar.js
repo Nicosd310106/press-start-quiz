@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     const prompt = `Genera un cuestionario de trivia gamer de 5 preguntas sobre videojuegos del género "${genre}" con dificultad "${level}". Asegúrate de que 1 opción sea correcta y 3 incorrectas pero creíbles.`;
 
     const result = await model.generateContent(prompt);
-    const questions = JSON.parse(result.response.text());
+const questions = JSON.parse(result.response.text());
 
     return res.status(200).json(questions);
 
