@@ -1,7 +1,8 @@
 {
   "name": "press-start-quiz",
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
-    "@google/genai": "latest"
+    "@google/generative-ai": "^0.21.0"
   }
 }
