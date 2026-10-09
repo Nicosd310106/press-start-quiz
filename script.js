@@ -54,13 +54,19 @@ async function iniciarQuiz(genre, level) {
     `;
 
     try {
-        // Petición directa al servidor backend en Vercel
-        const response = await fetch('/api/generar', {            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ genre, level })
-        });
+        const response = await fetch('/api/generar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre, level })
+});
+
+const texto = await response.text();
+let data;
+try {
+    data = JSON.parse(texto);
+} catch {
+    throw new Error(`El servidor respondió ${response.status}: ${texto.slice(0, 150)}`);
+}
 
         const data = await response.json();
 
