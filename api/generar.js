@@ -1,4 +1,5 @@
-const MODEL = "gemini-2.5-flash"; // modelo válido y vigente
+// Modelo por defecto; puedes cambiarlo sin tocar código con la variable GEMINI_MODEL en Vercel
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 const DIFICULTADES = {
   "Fácil": "FÁCIL: juegos y datos muy conocidos por cualquier persona que haya jugado alguna vez.",
