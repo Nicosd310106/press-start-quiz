@@ -142,9 +142,14 @@ Devuelve SOLO un arreglo JSON con esta forma:
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 1.0 }
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 1.0,
+            // En los modelos 3.x el "pensamiento" por defecto es lento; en bajo responde mucho antes
+            ...(intentos[i].startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: "low" } } : {})
+          }
         }),
-        signal: AbortSignal.timeout(18000) // si Gemini no responde en 18 s, se corta ese intento
+        signal: AbortSignal.timeout(22000) // si Gemini no responde en 22 s, se corta ese intento
       });
       const json = await response.json();
 
@@ -161,7 +166,13 @@ Devuelve SOLO un arreglo JSON con esta forma:
       if (!TEMPORALES.includes(response.status) || i === intentos.length - 1) break;
       if (response.status !== 429) await espera(1200);
     } catch (e) {
-      ultimoError = "La IA tardó demasiado en responder.";
+      const agotado = e.name === "TimeoutError" || e.name === "AbortError";
+      ultimoError = agotado
+        ? "La IA tardó demasiado en responder."
+        : `No se pudo conectar con la IA: ${e.message}`;
+      console.error("Intento con", intentos[i], "falló:", e.name, e.message);
+      // Si un modelo se colgó, repetirlo no ayuda: pasa directo al siguiente modelo distinto
+      while (i + 1 < intentos.length && intentos[i + 1] === intentos[i]) i++;
       if (i === intentos.length - 1) break;
     }
   }
