@@ -3,7 +3,7 @@ let selectedLevel = "";
 let bancoMezclado = [];
 let currentIndex = 0;
 let score = 0;
-let nivelActualLabel = ""; 
+let nivelActualLabel = "";
 
 const menuEl = document.getElementById("menu");
 const genreSelection = document.getElementById("genre-selection");
@@ -39,7 +39,7 @@ async function iniciarQuiz(genre, level) {
     currentIndex = 0;
 
     document.getElementById("score-display").innerText = "Puntos: 0";
-    document.getElementById("difficulty-badge").innerText = nivelActualLabel; 
+    document.getElementById("difficulty-badge").innerText = nivelActualLabel;
 
     menuEl.style.display = "none";
     gameEl.style.display = "block";
@@ -54,21 +54,21 @@ async function iniciarQuiz(genre, level) {
     `;
 
     try {
-        const response = await fetch('/api/generar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genre, level })
-});
+        // Ruta relativa: siempre apunta al mismo despliegue de Vercel
+        const response = await fetch("/api/generar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ genre, level, count: 10 })
+        });
 
-const texto = await response.text();
-let data;
-try {
-    data = JSON.parse(texto);
-} catch {
-    throw new Error(`El servidor respondió ${response.status}: ${texto.slice(0, 150)}`);
-}
-
-        const data = await response.json();
+        // Se lee como texto primero, por si el servidor responde algo que no es JSON
+        const texto = await response.text();
+        let data;
+        try {
+            data = JSON.parse(texto);
+        } catch {
+            throw new Error(`El servidor respondió ${response.status}: ${texto.slice(0, 150)}`);
+        }
 
         if (!response.ok) {
             throw new Error(data.detalle || data.error || "Error desconocido en el servidor");
@@ -86,7 +86,7 @@ try {
         quizArea.innerHTML = `
             <h2 style="color: #ff003c;">ERROR:</h2>
             <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
-            <button class='btn-option' onclick='volverAlMenu()'>VOLVER AL MENÚ</button>
+            <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
         `;
     }
 }
@@ -120,7 +120,7 @@ function checkAnswer(index) {
             quizArea.innerHTML = `
                 <h2 style="color: #00feff; text-shadow: 0 0 10px #00feff;">¡GG! RONDA SUPERADA</h2>
                 <p style="font-size: 1.5rem; margin: 20px 0;">Puntaje final: ${score}</p>
-                <button class='btn-option' onclick='volverAlMenu()'>INSERT COIN (VOLVER)</button>
+                <button class="btn-option" onclick="volverAlMenu()">INSERT COIN (VOLVER)</button>
             `;
         }
     } else {
@@ -144,6 +144,7 @@ function volverAlMenu() {
 
     gameEl.style.display = "none";
     gameOverScreen.style.display = "none";
+    difficultySelection.style.display = "none";
     genreSelection.style.display = "block";
     menuEl.style.display = "block";
 }
