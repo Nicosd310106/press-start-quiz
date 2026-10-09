@@ -55,8 +55,7 @@ async function iniciarQuiz(genre, level) {
 
     try {
         // Petición directa al servidor backend en Vercel
-        const response = await fetch('https://press-start-quiz.vercel.app/api/generar', {
-            method: 'POST',
+        const response = await fetch('/api/generar', {            method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
             },
