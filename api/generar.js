@@ -88,10 +88,17 @@ Devuelve SOLO un arreglo JSON con esta forma:
 
       if (response.ok) { data = json; break; }
 
-      ultimoError = json.error?.message || ultimoError;
-      // Solo reintenta con errores temporales (sobrecarga, límite momentáneo)
+      ultimoError = response.status === 429
+        ? "Se agotó el límite gratuito de la IA por ahora. Intenta de nuevo más tarde."
+        : (json.error?.message || ultimoError);
+
+      // Con cuota agotada (429) no sirve reintentar el mismo modelo: pasa directo al de respaldo
+      if (response.status === 429) {
+        while (i + 1 < intentos.length && intentos[i + 1] === intentos[i]) i++;
+      }
+      // Solo reintenta con errores temporales (sobrecarga, límite)
       if (!TEMPORALES.includes(response.status) || i === intentos.length - 1) break;
-      await espera(1200);
+      if (response.status !== 429) await espera(1200);
     }
 
     if (!data) throw new Error(ultimoError);
