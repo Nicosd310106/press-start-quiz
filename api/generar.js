@@ -88,7 +88,8 @@ async function leerBanco(genre, level, evitarNorm) {
 }
 
 async function guardarBanco(genre, preguntas) {
-  if (!BANCO_ACTIVO || !preguntas.length) return;
+  if (!BANCO_ACTIVO) return "banco-apagado";
+  if (!preguntas.length) return "sin-preguntas";
   try {
     const filas = preguntas.map(p => ({
       genero: genre,
@@ -103,8 +104,11 @@ async function guardarBanco(genre, preguntas) {
       headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
       body: JSON.stringify(filas)
     });
+    console.log(`Banco (guardar): enviadas ${filas.length} preguntas`);
+    return `guardadas:${filas.length}`;
   } catch (e) {
     console.error("Banco (guardar):", e.message); // un fallo aquí no debe romper el juego
+    return "error";
   }
 }
 
@@ -186,6 +190,41 @@ Devuelve SOLO un arreglo JSON con esta forma:
   return preguntas;
 }
 
+
+// ---------- Diagnóstico: abre /api/generar?diagnostico=1 en el navegador ----------
+async function diagnostico() {
+  const tipoClave = !SUPABASE_KEY ? "vacía"
+    : SUPABASE_KEY.startsWith("sb_secret_") ? "secret (correcta)"
+    : SUPABASE_KEY.startsWith("sb_publishable_") ? "PUBLISHABLE (incorrecta, usa la secret)"
+    : SUPABASE_KEY.startsWith("eyJ") ? "JWT antigua (service_role o anon)"
+    : "formato desconocido";
+  const info = {
+    gemini_key_cargada: Boolean(process.env.GEMINI_API_KEY),
+    modelo: MODEL,
+    modelo_respaldo: FALLBACK_MODEL || "(ninguno)",
+    supabase_url_cargada: Boolean(SUPABASE_URL),
+    supabase_url_empieza_con_https: SUPABASE_URL.startsWith("https://"),
+    supabase_url_termina_bien: SUPABASE_URL.endsWith(".supabase.co"),
+    supabase_clave: tipoClave,
+    banco_activo: BANCO_ACTIVO
+  };
+  if (!BANCO_ACTIVO) return info;
+  try {
+    const filas = await (await sb("preguntas?select=id&limit=1000")).json();
+    info.prueba_lectura = `ok, ${filas.length} preguntas guardadas`;
+  } catch (e) { info.prueba_lectura = "ERROR: " + e.message; }
+  try {
+    await sb("preguntas?on_conflict=hash", {
+      method: "POST",
+      headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify([{ genero: "_diagnostico", dificultad: "Media", q: "prueba", options: ["a", "b", "c", "d"], correct: 0, hash: "__diagnostico__" }])
+    });
+    await sb("preguntas?hash=eq.__diagnostico__", { method: "DELETE" });
+    info.prueba_escritura = "ok";
+  } catch (e) { info.prueba_escritura = "ERROR: " + e.message; }
+  return info;
+}
+
 // ---------- Handler ----------
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*"); // luego limítalo a tu dominio
@@ -193,6 +232,9 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method === "GET" && new URL(req.url || "/", "http://x").searchParams.has("diagnostico")) {
+    return res.status(200).json(await diagnostico());
+  }
   if (req.method !== "POST") return res.status(405).json({ error: "Método no permitido" });
 
   let body = req.body;
@@ -223,7 +265,8 @@ export default async function handler(req, res) {
   // 2) Se intenta con la IA y lo nuevo se guarda en el banco
   try {
     const preguntas = await generarConIA({ genre, level, count, evitar, apiKey });
-    await guardarBanco(genre, preguntas);
+    const estadoBanco = await guardarBanco(genre, preguntas);
+    res.setHeader("X-Banco", estadoBanco); // visible en la pestaña Red del navegador
     return enviar(preguntas, "ia");
   } catch (error) {
     console.error("Error en la IA:", error.message);
