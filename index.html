@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Press Start Quiz</title>
-   <link rel="icon" type="image/png" href="Logo.png">
+    <title>Press Start Quiz</title>
+    <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
- </head>
+</head>
 <body>
     <div class="game-container">
-            <header>
-              <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
-                <h1>Press Start Quiz</h1>
-            </header>
+        <header>
+            <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
+            <h1>Press Start Quiz</h1>
+        </header>
 
         <div id="menu">
             <!-- PASO 1: Selección de Género -->
@@ -62,7 +62,7 @@
                 </div>
             </div>
 
-            <!-- PASO 2: Selección de Dificultad (Oculto inicialmente) -->
+            <!-- PASO 2: Selección de Dificultad -->
             <div id="difficulty-selection" style="display: none;">
                 <p class="menu-subtitle">Género: <span id="selected-genre-label" style="color: #ff0055;"></span></p>
                 <p class="menu-subtitle">Elige tu dificultad</p>
@@ -87,6 +87,11 @@
                         <span class="diff-label">Todas</span>
                         <span class="diff-desc">Mezcla de todo nivel</span>
                     </button>
+                    <button class="btn-difficulty btn-infinite" data-level="Infinito" style="border-color: #ffe600;">
+                        <span class="diff-icon">♾️</span>
+                        <span class="diff-label" style="color: #ffe600;">Modo Infinito</span>
+                        <span class="diff-desc">¡Juega hasta fallar!</span>
+                    </button>
                 </div>
                 <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
             </div>
@@ -96,6 +101,8 @@
             <div id="status">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
+                <span style="display: none;">Racha: <span id="streak-display">0</span></span>
+                <span style="display: none;">Mejor: <span id="best-streak-display">0</span></span>
             </div>
 
             <main id="quiz">
@@ -106,6 +113,10 @@
             <div id="game-over-screen" style="display: none;">
                 <h2>GAME OVER</h2>
                 <p>Tu puntuación final: <span id="score-over">0</span></p>
+                <div id="infinite-game-over-stats" style="display: none;">
+                    <p>Racha alcanzada: <span id="final-streak-over">0</span></p>
+                    <p>Mejor racha histórica: <span id="best-streak-over">0</span></p>
+                </div>
                 <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN</button>
             </div>
 
@@ -113,6 +124,7 @@
         </div>
     </div>
 
+    <script src="modo-infinito.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
