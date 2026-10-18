@@ -3,29 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Press Start Quiz - Juego</title>
+    <title>Press Start Quiz - Juego Arcade</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #080811;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .arcade-card {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(15, 15, 25, 0.95);
+            border: 3px solid #ff0055;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.5);
+            text-align: center;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #00feff;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .user-tag {
+            color: #00feff;
+            font-weight: bold;
+        }
+        .coins-tag {
+            color: #ffe600;
+            font-weight: bold;
+        }
+        .btn-logout {
+            background: #ff0055;
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .question-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00feff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            background: #111122;
+            border: 1px solid #ff0055;
+            color: #fff;
+            padding: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            background: #ff0055;
+            box-shadow: 0 0 10px #ff0055;
+        }
+    </style>
 </head>
 <body>
+    <div class="arcade-card">
+        <div class="header-bar">
+            <span class="user-tag" id="user-display">🎮 Jugador: ---</span>
+            <span class="coins-tag" id="coins-display">🪙 Monedas: 0</span>
+            <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+        </div>
 
-    <!-- AQUÍ VA TODO EL HTML DE TU JUEGO PRINCIPAL (PREGUNTAS, TIENDA, MONEDAS, etc.) -->
-    <div class="game-container">
-        <!-- Contenido del juego -->
+        <h1 style="color: #ffe600; font-size: 1.6rem; margin-top: 0;">PRESS START QUIZ</h1>
+
+        <div class="question-box" id="question-text">
+            Cargando pregunta...
+        </div>
+
+        <div class="options-grid" id="options-container">
+            <button class="option-btn">Opción 1</button>
+            <button class="option-btn">Opción 2</button>
+            <button class="option-btn">Opción 3</button>
+            <button class="option-btn">Opción 4</button>
+        </div>
     </div>
 
     <script src="sonidos.js"></script>
     <script src="script.js"></script>
     <script src="tienda.js"></script>
-
-    <!-- VERIFICACIÓN DE SESIÓN -->
     <script>
+        // Verificación de sesión al cargar
         window.addEventListener('DOMContentLoaded', () => {
             const usuarioActual = localStorage.getItem('press_start_usuario_actual');
             if (!usuarioActual) {
                 window.location.href = "index.html";
+                return;
+            }
+
+            // Mostrar el nombre del usuario logueado
+            document.getElementById('user-display').innerText = `🎮 Jugador: ${usuarioActual}`;
+            
+            // Cargar datos del usuario
+            const usuarios = JSON.parse(localStorage.getItem('press_start_usuarios_db') || '{}');
+            if (usuarios[usuarioActual]) {
+                document.getElementById('coins-display').innerText = `🪙 Monedas: ${usuarios[usuarioActual].puntos || 0}`;
             }
         });
+
+        function cerrarSesion() {
+            localStorage.removeItem('press_start_usuario_actual');
+            window.location.href = "index.html";
+        }
     </script>
 </body>
 </html>
