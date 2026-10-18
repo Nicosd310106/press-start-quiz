@@ -3,172 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Press Start Quiz - Bienvenida</title>
+    <title>Press Start Quiz - Juego</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
-    <style>
-        .auth-card {
-            max-width: 550px;
-            margin: 30px auto;
-            background: rgba(15, 15, 25, 0.95);
-            border: 3px solid #ff0055;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 0 25px rgba(255, 0, 85, 0.4);
-            text-align: center;
-        }
-        .welcome-box {
-            background: rgba(255, 0, 85, 0.1);
-            border: 2px dashed #ff0055;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .welcome-title {
-            color: #ffe600;
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-            text-shadow: 0 0 8px #ffe600;
-            font-weight: bold;
-        }
-        .welcome-text {
-            color: #ffffff;
-            font-size: 1rem;
-            line-height: 1.6;
-            margin: 0;
-            text-align: justify;
-        }
-        .form-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            color: #00feff;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            background: #000;
-            border: 1px solid #00feff;
-            border-radius: 6px;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background: #ff0055;
-            border: none;
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 0 12px #ff0055;
-            transition: all 0.2s;
-        }
-        .btn-submit:hover {
-            transform: scale(1.02);
-            background: #ff2a75;
-        }
-        .alert-msg {
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .alert-error { background: rgba(255, 0, 85, 0.2); border: 1px solid #ff0055; color: #ff0055; }
-        .alert-success { background: rgba(0, 255, 128, 0.2); border: 1px solid #00ff80; color: #00ff80; }
-        .link-alt {
-            display: block;
-            margin-top: 18px;
-            color: #ffe600;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .link-alt:hover { text-decoration: underline; }
-    </style>
 </head>
 <body>
+
+    <!-- AQUÍ VA TODO EL HTML DE TU JUEGO PRINCIPAL (PREGUNTAS, TIENDA, MONEDAS, etc.) -->
     <div class="game-container">
-        <header style="text-align: center; margin-top: 20px;">
-            <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
-            <h1>Press Start Quiz</h1>
-        </header>
-
-        <div class="auth-card">
-            <div class="welcome-box">
-                <h2 class="welcome-title">🎮 ¡BIENVENIDO A PRESS START QUIZ!</h2>
-                <p class="welcome-text">
-                    El lugar donde pondrás a prueba todo lo que sabes sobre el universo de los videojuegos. A medida que superes niveles y demuestres tu habilidad, ganarás monedas para comprar comodines y ventajas en la tienda.
-                    <br><br>
-                    ¿Estás listo para el reto? <strong>Crea tu cuenta</strong> a continuación y ¡comienza a jugar!
-                </p>
-            </div>
-
-            <div id="alert-box" class="alert-msg"></div>
-
-            <form onsubmit="registrarCuenta(event)">
-                <div class="form-group">
-                    <label for="reg-user">NOMBRE DE JUGADOR (NICKNAME):</label>
-                    <input type="text" id="reg-user" required placeholder="Crea tu Nickname">
-                </div>
-                <div class="form-group">
-                    <label for="reg-pass">CONTRASEÑA:</label>
-                    <input type="password" id="reg-pass" required placeholder="Crea tu clave secreta">
-                </div>
-                <button type="submit" class="btn-submit">🎮 CREAR UNA CUENTA</button>
-            </form>
-
-            <a href="login.html" class="link-alt">¿Ya tienes una cuenta? Inicia sesión aquí →</a>
-        </div>
+        <!-- Contenido del juego -->
     </div>
 
     <script src="sonidos.js"></script>
+    <script src="script.js"></script>
+    <script src="tienda.js"></script>
+
+    <!-- VERIFICACIÓN DE SESIÓN -->
     <script>
-        function registrarCuenta(e) {
-            e.preventDefault();
-            const user = document.getElementById('reg-user').value.trim();
-            const pass = document.getElementById('reg-pass').value;
-            const alertBox = document.getElementById('alert-box');
-
-            const users = JSON.parse(localStorage.getItem('press_start_usuarios_db') || '{}');
-
-            if (users[user]) {
-                if (typeof Sonidos !== 'undefined') Sonidos.playError();
-                alertBox.innerText = "❌ Este usuario ya existe. Elige otro nombre.";
-                alertBox.className = "alert-msg alert-error";
-                alertBox.style.display = "block";
-                return;
+        window.addEventListener('DOMContentLoaded', () => {
+            const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+            if (!usuarioActual) {
+                window.location.href = "index.html";
             }
-
-            users[user] = {
-                password: pass,
-                puntos: 0,
-                inventario: { mitad: 0, escudo: 0, saltar: 0, doble: 0 }
-            };
-
-            localStorage.setItem('press_start_usuarios_db', JSON.stringify(users));
-
-            if (typeof Sonidos !== 'undefined') Sonidos.playAcierto();
-
-            alertBox.innerText = "✅ ¡Cuenta creada con éxito! Redirigiendo a Iniciar Sesión...";
-            alertBox.className = "alert-msg alert-success";
-            alertBox.style.display = "block";
-
-            localStorage.setItem('temp_registered_user', user);
-
-            setTimeout(() => {
-                window.location.href = "login.html";
-            }, 1200);
-        }
+        });
     </script>
 </body>
 </html>
