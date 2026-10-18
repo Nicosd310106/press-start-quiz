@@ -31,8 +31,17 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Actualizar puntos de la tienda al cargar la página
+// Verificación de sesión y actualización de la tienda al cargar la página
 window.addEventListener("DOMContentLoaded", () => {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+
+    // Si no ha iniciado sesión, lo redirige automáticamente a login.html
+    if (!usuarioActual) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    console.log("Sesión activa para el jugador:", usuarioActual);
     actualizarPantallaTienda();
 });
 
