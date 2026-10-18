@@ -9,18 +9,54 @@ let nivelActualLabel = "";
 let multiplicadorPuntos = 1;
 let escudoActivo = false;
 
-const menuEl = document.getElementById("menu");
-const genreSelection = document.getElementById("genre-selection");
-const difficultySelection = document.getElementById("difficulty-selection");
-const shopScreen = document.getElementById("shop-screen");
-const gameEl = document.getElementById("game");
-const quizArea = document.getElementById("quiz");
-const gameOverScreen = document.getElementById("game-over-screen");
+// Verificación de sesión e inicialización cuando el DOM esté listo
+window.addEventListener("DOMContentLoaded", () => {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
-// Inicializar el helper de Modo Infinito enviándole la función generadora
-if (typeof ModoInfinito !== 'undefined') {
-    ModoInfinito.init(fetchPreguntasServerless);
-}
+    // Si no hay usuario logueado, redirige de inmediato a login.html
+    if (!usuarioActual) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    console.log("Sesión activa para el jugador:", usuarioActual);
+
+    // Inicializar eventos de botones de género
+    document.querySelectorAll(".btn-genre").forEach(btn => {
+        btn.addEventListener("click", () => {
+            selectedGenre = btn.getAttribute("data-genre");
+            const labelEl = document.getElementById("selected-genre-label");
+            if (labelEl) labelEl.innerText = selectedGenre;
+            
+            const genreSel = document.getElementById("genre-selection");
+            const diffSel = document.getElementById("difficulty-selection");
+            if (genreSel) genreSel.style.display = "none";
+            if (diffSel) diffSel.style.display = "block";
+        });
+    });
+
+    // Volver a selección de género
+    const btnBackGenre = document.getElementById("btn-back-genre");
+    if (btnBackGenre) {
+        btnBackGenre.addEventListener("click", () => {
+            const genreSel = document.getElementById("genre-selection");
+            const diffSel = document.getElementById("difficulty-selection");
+            if (diffSel) diffSel.style.display = "none";
+            if (genreSel) genreSel.style.display = "block";
+        });
+    }
+
+    // Botones de dificultad
+    document.querySelectorAll(".btn-difficulty").forEach(btn => {
+        btn.addEventListener("click", () => {
+            selectedLevel = btn.getAttribute("data-level");
+            nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
+            iniciarQuiz(selectedGenre, selectedLevel);
+        });
+    });
+
+    actualizarPantallaTienda();
+});
 
 // Reproducir sonido de clic global en cualquier botón
 document.addEventListener("click", (e) => {
@@ -31,41 +67,10 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Verificación de sesión y actualización de la tienda al cargar la página
-window.addEventListener("DOMContentLoaded", () => {
-    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
-
-    // Si no ha iniciado sesión, lo redirige automáticamente a login.html
-    if (!usuarioActual) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    console.log("Sesión activa para el jugador:", usuarioActual);
-    actualizarPantallaTienda();
-});
-
-document.querySelectorAll(".btn-genre").forEach(btn => {
-    btn.addEventListener("click", () => {
-        selectedGenre = btn.getAttribute("data-genre");
-        document.getElementById("selected-genre-label").innerText = selectedGenre;
-        genreSelection.style.display = "none";
-        difficultySelection.style.display = "block";
-    });
-});
-
-document.getElementById("btn-back-genre").addEventListener("click", () => {
-    difficultySelection.style.display = "none";
-    genreSelection.style.display = "block";
-});
-
-document.querySelectorAll(".btn-difficulty").forEach(btn => {
-    btn.addEventListener("click", () => {
-        selectedLevel = btn.getAttribute("data-level");
-        nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
-        iniciarQuiz(selectedGenre, selectedLevel);
-    });
-});
+// Inicializar Modo Infinito si está disponible
+if (typeof ModoInfinito !== 'undefined') {
+    ModoInfinito.init(fetchPreguntasServerless);
+}
 
 // Función auxiliar para solicitar preguntas a Vercel/Gemini
 async function fetchPreguntasServerless(genre, level, count = 10, exclude = []) {
@@ -100,38 +105,52 @@ async function iniciarQuiz(genre, level) {
     multiplicadorPuntos = 1;
     escudoActivo = false;
 
-    document.getElementById("score-display").innerText = "Puntos: 0";
-    document.getElementById("difficulty-badge").innerText = nivelActualLabel;
+    const scoreDisp = document.getElementById("score-display");
+    const diffBadge = document.getElementById("difficulty-badge");
+    if (scoreDisp) scoreDisp.innerText = "Puntos: 0";
+    if (diffBadge) diffBadge.innerText = nivelActualLabel;
 
     const isInfinite = (level === "Infinito");
     
-    if (isInfinite) {
+    if (isInfinite && typeof ModoInfinito !== 'undefined') {
         ModoInfinito.iniciarModo(genre);
-        document.getElementById("infinite-streak-badge").style.display = "inline";
-        document.getElementById("streak-display").innerText = "0";
-    } else {
+        const streakBadge = document.getElementById("infinite-streak-badge");
+        const streakDisp = document.getElementById("streak-display");
+        if (streakBadge) streakBadge.style.display = "inline";
+        if (streakDisp) streakDisp.innerText = "0";
+    } else if (typeof ModoInfinito !== 'undefined') {
         ModoInfinito.desactivar();
-        document.getElementById("infinite-streak-badge").style.display = "none";
+        const streakBadge = document.getElementById("infinite-streak-badge");
+        if (streakBadge) streakBadge.style.display = "none";
     }
 
     actualizarHUDTienda();
 
-    menuEl.style.display = "none";
-    gameEl.style.display = "block";
-    quizArea.style.display = "block";
-    gameOverScreen.style.display = "none";
+    const menuEl = document.getElementById("menu");
+    const gameEl = document.getElementById("game");
+    const quizArea = document.getElementById("quiz");
+    const gameOverScreen = document.getElementById("game-over-screen");
 
-    document.getElementById("question").innerText = "Generando preguntas con IA...";
-    document.getElementById("options-container").innerHTML = `
-        <p style="text-align: center; color: #00feff; font-size: 1.1rem; margin-top: 20px;">
-            Conectando con el servidor arcade... 🎮
-        </p>
-    `;
+    if (menuEl) menuEl.style.display = "none";
+    if (gameEl) gameEl.style.display = "block";
+    if (quizArea) quizArea.style.display = "block";
+    if (gameOverScreen) gameOverScreen.style.display = "none";
+
+    const qEl = document.getElementById("question");
+    const optContainer = document.getElementById("options-container");
+    if (qEl) qEl.innerText = "Generando preguntas con IA...";
+    if (optContainer) {
+        optContainer.innerHTML = `
+            <p style="text-align: center; color: #00feff; font-size: 1.1rem; margin-top: 20px;">
+                Conectando con el servidor arcade... 🎮
+            </p>
+        `;
+    }
 
     try {
         bancoMezclado = await fetchPreguntasServerless(genre, level, isInfinite ? 5 : 10);
         
-        if (isInfinite) {
+        if (isInfinite && typeof ModoInfinito !== 'undefined') {
             ModoInfinito.preguntasBuffer = [...bancoMezclado];
             ModoInfinito.evaluarPrecarga(genre);
         }
@@ -142,18 +161,20 @@ async function iniciarQuiz(genre, level) {
         console.error("Error al iniciar el Quiz:", error);
         if (typeof Sonidos !== 'undefined') Sonidos.playError();
         
-        quizArea.innerHTML = `
-            <h2 style="color: #ff003c;">ERROR:</h2>
-            <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
-            <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
-        `;
+        if (quizArea) {
+            quizArea.innerHTML = `
+                <h2 style="color: #ff003c;">ERROR:</h2>
+                <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
+                <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+            `;
+        }
     }
 }
 
 function loadQuestion() {
     let q;
 
-    if (ModoInfinito.activo) {
+    if (typeof ModoInfinito !== 'undefined' && ModoInfinito.activo) {
         q = ModoInfinito.obtenerSiguientePregunta();
         ModoInfinito.evaluarPrecarga(selectedGenre);
         
@@ -165,26 +186,30 @@ function loadQuestion() {
         q = bancoMezclado[currentIndex];
     }
 
+    const quizArea = document.getElementById("quiz");
+
     if (!q) {
-        quizArea.innerHTML = `<h2 style="color: #ffe600;">Cargando más preguntas... ⚡</h2>`;
+        if (quizArea) quizArea.innerHTML = `<h2 style="color: #ffe600;">Cargando más preguntas... ⚡</h2>`;
         setTimeout(() => loadQuestion(), 1000);
         return;
     }
 
     multiplicadorPuntos = 1;
 
-    document.getElementById("question").innerText = q.q;
+    const qEl = document.getElementById("question");
     const container = document.getElementById("options-container");
-    container.innerHTML = "";
-
-    q.options.forEach((opt, i) => {
-        const btn = document.createElement("button");
-        btn.innerText = opt;
-        btn.className = "btn-option";
-        btn.dataset.index = i;
-        btn.onclick = () => checkAnswer(i, q);
-        container.appendChild(btn);
-    });
+    if (qEl) qEl.innerText = q.q;
+    if (container) {
+        container.innerHTML = "";
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement("button");
+            btn.innerText = opt;
+            btn.className = "btn-option";
+            btn.dataset.index = i;
+            btn.onclick = () => checkAnswer(i, q);
+            container.appendChild(btn);
+        });
+    }
 
     actualizarHUDTienda();
 }
@@ -193,10 +218,7 @@ function checkAnswer(index, qObj) {
     const q = qObj || bancoMezclado[currentIndex];
 
     if (index === q.correct) {
-        // Reproducir sonido de acierto
-        if (typeof Sonidos !== 'undefined') {
-            Sonidos.playAcierto();
-        }
+        if (typeof Sonidos !== 'undefined') Sonidos.playAcierto();
 
         const puntosGanados = 10 * multiplicadorPuntos;
         score += puntosGanados;
@@ -205,66 +227,80 @@ function checkAnswer(index, qObj) {
             Tienda.sumarPuntos(puntosGanados);
         }
 
-        document.getElementById("score-display").innerText = `Puntos: ${score}`;
+        const scoreDisp = document.getElementById("score-display");
+        if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        if (ModoInfinito.activo) {
+        if (typeof ModoInfinito !== 'undefined' && ModoInfinito.activo) {
             ModoInfinito.registrarAcierto();
-            document.getElementById("streak-display").innerText = ModoInfinito.rachaActual;
+            const streakDisp = document.getElementById("streak-display");
+            if (streakDisp) streakDisp.innerText = ModoInfinito.rachaActual;
             loadQuestion();
         } else {
             currentIndex++;
             if (currentIndex < bancoMezclado.length) {
                 loadQuestion();
             } else {
-                quizArea.innerHTML = `
-                    <h2 style="color: #00feff; text-shadow: 0 0 10px #00feff;">¡GG! RONDA SUPERADA</h2>
-                    <p style="font-size: 1.5rem; margin: 20px 0;">Puntaje final: ${score}</p>
-                    <button class="btn-option" onclick="volverAlMenu()">INSERT COIN (VOLVER)</button>
-                `;
+                const quizArea = document.getElementById("quiz");
+                if (quizArea) {
+                    quizArea.innerHTML = `
+                        <h2 style="color: #00feff; text-shadow: 0 0 10px #00feff;">¡GG! RONDA SUPERADA</h2>
+                        <p style="font-size: 1.5rem; margin: 20px 0;">Puntaje final: ${score}</p>
+                        <button class="btn-option" onclick="volverAlMenu()">INSERT COIN (VOLVER)</button>
+                    `;
+                }
             }
         }
     } else {
-        // Verificar si el escudo nos protege
         if (escudoActivo) {
             escudoActivo = false;
             if (typeof Sonidos !== 'undefined') Sonidos.playPowerUp();
             alert("🛡️ ¡El Escudo te protegió del Game Over!");
-            if (!ModoInfinito.activo) currentIndex++;
+            if (typeof ModoInfinito === 'undefined' || !ModoInfinito.activo) currentIndex++;
             loadQuestion();
             return;
         }
 
-        // Reproducir sonido de error / Game Over
-        if (typeof Sonidos !== 'undefined') {
-            Sonidos.playError();
-        }
+        if (typeof Sonidos !== 'undefined') Sonidos.playError();
 
-        quizArea.style.display = "none";
-        gameOverScreen.style.display = "block";
-        document.getElementById("score-over").innerText = score;
+        const quizArea = document.getElementById("quiz");
+        const gameOverScreen = document.getElementById("game-over-screen");
+        if (quizArea) quizArea.style.display = "none";
+        if (gameOverScreen) gameOverScreen.style.display = "block";
+
+        const scoreOver = document.getElementById("score-over");
+        if (scoreOver) scoreOver.innerText = score;
 
         const infiniteStats = document.getElementById("infinite-game-over-stats");
-        if (ModoInfinito.activo) {
-            infiniteStats.style.display = "block";
-            document.getElementById("final-streak-over").innerText = ModoInfinito.rachaActual;
-            document.getElementById("best-streak-over").innerText = ModoInfinito.mejorRacha;
+        if (typeof ModoInfinito !== 'undefined' && ModoInfinito.activo) {
+            if (infiniteStats) infiniteStats.style.display = "block";
+            const finalStreak = document.getElementById("final-streak-over");
+            const bestStreak = document.getElementById("best-streak-over");
+            if (finalStreak) finalStreak.innerText = ModoInfinito.rachaActual;
+            if (bestStreak) bestStreak.innerText = ModoInfinito.mejorRacha;
         } else {
-            infiniteStats.style.display = "none";
+            if (infiniteStats) infiniteStats.style.display = "none";
         }
     }
 }
 
 // --- TIENDA Y COMODINES ---
 function abrirTienda() {
-    genreSelection.style.display = "none";
-    difficultySelection.style.display = "none";
-    shopScreen.style.display = "block";
+    const genreSel = document.getElementById("genre-selection");
+    const diffSel = document.getElementById("difficulty-selection");
+    const shopScr = document.getElementById("shop-screen");
+
+    if (genreSel) genreSel.style.display = "none";
+    if (diffSel) diffSel.style.display = "none";
+    if (shopScr) shopScr.style.display = "block";
     actualizarPantallaTienda();
 }
 
 function cerrarTienda() {
-    shopScreen.style.display = "none";
-    genreSelection.style.display = "block";
+    const genreSel = document.getElementById("genre-selection");
+    const shopScr = document.getElementById("shop-screen");
+
+    if (shopScr) shopScr.style.display = "none";
+    if (genreSel) genreSel.style.display = "block";
     actualizarPantallaTienda();
 }
 
@@ -272,16 +308,20 @@ function actualizarPantallaTienda() {
     if (typeof Tienda === 'undefined') return;
     const pts = Tienda.puntosDisponibles || 0;
     
-    document.getElementById("tienda-puntos-menu").innerText = pts;
+    const menuPts = document.getElementById("tienda-puntos-menu");
     const shopPts = document.getElementById("shop-points-display");
+    if (menuPts) menuPts.innerText = pts;
     if (shopPts) shopPts.innerText = pts;
 
-    if (document.getElementById("shop-cant-mitad")) {
-        document.getElementById("shop-cant-mitad").innerText = Tienda.inventario.mitad || 0;
-        document.getElementById("shop-cant-escudo").innerText = Tienda.inventario.escudo || 0;
-        document.getElementById("shop-cant-saltar").innerText = Tienda.inventario.saltar || 0;
-        document.getElementById("shop-cant-doble").innerText = Tienda.inventario.doble || 0;
-    }
+    const cantMitad = document.getElementById("shop-cant-mitad");
+    const cantEscudo = document.getElementById("shop-cant-escudo");
+    const cantSaltar = document.getElementById("shop-cant-saltar");
+    const cantDoble = document.getElementById("shop-cant-doble");
+
+    if (cantMitad) cantMitad.innerText = Tienda.inventario.mitad || 0;
+    if (cantEscudo) cantEscudo.innerText = Tienda.inventario.escudo || 0;
+    if (cantSaltar) cantSaltar.innerText = Tienda.inventario.saltar || 0;
+    if (cantDoble) cantDoble.innerText = Tienda.inventario.doble || 0;
 }
 
 function comprarComodin(item) {
@@ -297,10 +337,15 @@ function comprarComodin(item) {
 
 function actualizarHUDTienda() {
     if (typeof Tienda === 'undefined') return;
-    document.getElementById("cant-mitad").innerText = Tienda.inventario.mitad || 0;
-    document.getElementById("cant-escudo").innerText = Tienda.inventario.escudo || 0;
-    document.getElementById("cant-saltar").innerText = Tienda.inventario.saltar || 0;
-    document.getElementById("cant-doble").innerText = Tienda.inventario.doble || 0;
+    const cantMitad = document.getElementById("cant-mitad");
+    const cantEscudo = document.getElementById("cant-escudo");
+    const cantSaltar = document.getElementById("cant-saltar");
+    const cantDoble = document.getElementById("cant-doble");
+
+    if (cantMitad) cantMitad.innerText = Tienda.inventario.mitad || 0;
+    if (cantEscudo) cantEscudo.innerText = Tienda.inventario.escudo || 0;
+    if (cantSaltar) cantSaltar.innerText = Tienda.inventario.saltar || 0;
+    if (cantDoble) cantDoble.innerText = Tienda.inventario.doble || 0;
 }
 
 function usarComodin(tipo) {
@@ -309,7 +354,7 @@ function usarComodin(tipo) {
     if (tipo === 'mitad') {
         if (Tienda.usarItem('mitad')) {
             if (typeof Sonidos !== 'undefined') Sonidos.playPowerUp();
-            const currentQ = ModoInfinito.activo ? bancoMezclado[0] : bancoMezclado[currentIndex];
+            const currentQ = (typeof ModoInfinito !== 'undefined' && ModoInfinito.activo) ? bancoMezclado[0] : bancoMezclado[currentIndex];
             const correctIndex = currentQ ? currentQ.correct : 0;
             const botones = Array.from(document.querySelectorAll("#options-container .btn-option"));
             let eliminados = 0;
@@ -341,7 +386,7 @@ function usarComodin(tipo) {
     } else if (tipo === 'saltar') {
         if (Tienda.usarItem('saltar')) {
             if (typeof Sonidos !== 'undefined') Sonidos.playPowerUp();
-            if (!ModoInfinito.activo) currentIndex++;
+            if (typeof ModoInfinito === 'undefined' || !ModoInfinito.activo) currentIndex++;
             loadQuestion();
         } else {
             if (typeof Sonidos !== 'undefined') Sonidos.playError();
@@ -379,17 +424,27 @@ function volverAlMenu() {
         ModoInfinito.desactivar();
     }
 
-    quizArea.innerHTML = `
-        <h2 id="question">Cargando pregunta...</h2>
-        <div id="options-container"></div>
-    `;
+    const quizArea = document.getElementById("quiz");
+    if (quizArea) {
+        quizArea.innerHTML = `
+            <h2 id="question">Cargando pregunta...</h2>
+            <div id="options-container"></div>
+        `;
+    }
 
-    gameEl.style.display = "none";
-    gameOverScreen.style.display = "none";
-    shopScreen.style.display = "none";
-    difficultySelection.style.display = "none";
-    genreSelection.style.display = "block";
-    menuEl.style.display = "block";
+    const gameEl = document.getElementById("game");
+    const gameOverScreen = document.getElementById("game-over-screen");
+    const shopScreen = document.getElementById("shop-screen");
+    const difficultySelection = document.getElementById("difficulty-selection");
+    const genreSelection = document.getElementById("genre-selection");
+    const menuEl = document.getElementById("menu");
+
+    if (gameEl) gameEl.style.display = "none";
+    if (gameOverScreen) gameOverScreen.style.display = "none";
+    if (shopScreen) shopScreen.style.display = "none";
+    if (difficultySelection) difficultySelection.style.display = "none";
+    if (genreSelection) genreSelection.style.display = "block";
+    if (menuEl) menuEl.style.display = "block";
 
     actualizarPantallaTienda();
 }
