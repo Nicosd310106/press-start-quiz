@@ -3,184 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Press Start Quiz</title>
+    <title>Press Start Quiz - Juego</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- AQUÍ VA TODO EL HTML DE TU JUEGO PRINCIPAL (PREGUNTAS, TIENDA, MONEDAS, etc.) -->
     <div class="game-container">
-        <header>
-            <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
-            <h1>Press Start Quiz</h1>
-        </header>
-
-        <div id="menu">
-            <!-- PASO 1: Selección de Género -->
-            <div id="genre-selection">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <p class="menu-subtitle" style="margin: 0;">Elige el género de videojuegos</p>
-                    <button class="btn-powerup" onclick="abrirTienda()" style="width: auto; padding: 4px 10px;">
-                        🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
-                    </button>
-                </div>
-                
-                <div class="menu-options" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
-                    <button class="btn-genre" data-genre="Survival Horror">
-                        <span class="diff-icon">🧟</span>
-                        <span class="diff-label">Survival Horror</span>
-                    </button>
-                    <button class="btn-genre" data-genre="RPG">
-                        <span class="diff-icon">⚔️</span>
-                        <span class="diff-label">RPG</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Acción y Aventura">
-                        <span class="diff-icon">🔥</span>
-                        <span class="diff-label">Acción y Aventura</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Shooter">
-                        <span class="diff-icon">🎯</span>
-                        <span class="diff-label">Shooter / Disparos</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Lucha">
-                        <span class="diff-icon">🥊</span>
-                        <span class="diff-label">Lucha / Peleas</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Plataformas">
-                        <span class="diff-icon">🍄</span>
-                        <span class="diff-label">Plataformas</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Estrategia">
-                        <span class="diff-icon">♟️</span>
-                        <span class="diff-label">Estrategia</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Simulación">
-                        <span class="diff-icon">🏗️</span>
-                        <span class="diff-label">Simulación</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Carreras">
-                        <span class="diff-icon">🏎️</span>
-                        <span class="diff-label">Carreras</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Deportes">
-                        <span class="diff-icon">⚽</span>
-                        <span class="diff-label">Deportes</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- PASO 2: Selección de Dificultad -->
-            <div id="difficulty-selection" style="display: none;">
-                <p class="menu-subtitle">Género: <span id="selected-genre-label" style="color: #ff0055;"></span></p>
-                <p class="menu-subtitle">Elige tu dificultad</p>
-                <div class="menu-options">
-                    <button class="btn-difficulty" data-level="Fácil">
-                        <span class="diff-icon">★</span>
-                        <span class="diff-label">Fácil</span>
-                        <span class="diff-desc">Para calentar motores</span>
-                    </button>
-                    <button class="btn-difficulty" data-level="Media">
-                        <span class="diff-icon">★★</span>
-                        <span class="diff-label">Media</span>
-                        <span class="diff-desc">Para jugadores casuales</span>
-                    </button>
-                    <button class="btn-difficulty" data-level="Difícil">
-                        <span class="diff-icon">★★★</span>
-                        <span class="diff-label">Difícil</span>
-                        <span class="diff-desc">Solo para veteranos</span>
-                    </button>
-                    <button class="btn-difficulty btn-todas" data-level="Todas">
-                        <span class="diff-icon">🎮</span>
-                        <span class="diff-label">Todas</span>
-                        <span class="diff-desc">Mezcla de todo nivel</span>
-                    </button>
-                    <button class="btn-difficulty btn-infinite" data-level="Infinito" style="border-color: #ffe600;">
-                        <span class="diff-icon">♾️</span>
-                        <span class="diff-label" style="color: #ffe600;">Modo Infinito</span>
-                        <span class="diff-desc">¡Juega hasta fallar!</span>
-                    </button>
-                </div>
-                <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
-            </div>
-
-            <!-- PANTALLA DE LA TIENDA DE AYUDAS -->
-            <div id="shop-screen" style="display: none;">
-                <h2 style="color: #ffe600; font-size: 1.2rem; margin-bottom: 5px;">🛒 TIENDA ARCADE</h2>
-                <p class="menu-subtitle">Puntos disponibles: <span id="shop-points-display" style="color: #00feff; font-weight: bold;">0</span></p>
-                
-                <div class="menu-options" style="gap: 10px;">
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✂️ 50/50 ($30 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Elimina dos opciones incorrectas.</div>
-                        <button onclick="comprarComodin('mitad')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-mitad">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">🛡️ Escudo ($50 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Te perdona 1 respuesta incorrecta.</div>
-                        <button onclick="comprarComodin('escudo')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-escudo">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">⏭️ Saltar Pregunta ($20 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Avanza a la siguiente pregunta sin penalización.</div>
-                        <button onclick="comprarComodin('saltar')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-saltar">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✨ Doble Puntuación ($40 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Duplica los puntos recibidos en la respuesta.</div>
-                        <button onclick="comprarComodin('doble')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-doble">0</span>)</button>
-                    </div>
-                </div>
-
-                <button onclick="cerrarTienda()" class="btn-option" style="margin-top: 15px;">← Volver al Menú</button>
-            </div>
-        </div>
-
-        <div id="game" style="display: none;">
-            <!-- HUD Superior del Juego -->
-            <div id="status">
-                <span id="difficulty-badge">Fácil</span>
-                <span id="score-display">Puntos: 0</span>
-                <span id="infinite-streak-badge" style="display: none; color: #ffe600; font-weight: bold;">Racha: <span id="streak-display">0</span></span>
-            </div>
-
-            <!-- HUD de Comodines en Partida -->
-            <div id="shop-hud" style="margin-bottom: 10px; display: flex; gap: 4px; justify-content: center;">
-                <button id="btn-powerup-mitad" class="btn-powerup" onclick="usarComodin('mitad')">✂️ 50/50 (<span id="cant-mitad">0</span>)</button>
-                <button id="btn-powerup-escudo" class="btn-powerup" onclick="usarComodin('escudo')">🛡️ Escudo (<span id="cant-escudo">0</span>)</button>
-                <button id="btn-powerup-saltar" class="btn-powerup" onclick="usarComodin('saltar')">⏭️ Saltar (<span id="cant-saltar">0</span>)</button>
-                <button id="btn-powerup-doble" class="btn-powerup" onclick="usarComodin('doble')">✨ x2 Pts (<span id="cant-doble">0</span>)</button>
-            </div>
-
-            <!-- Indicador de Precarga de Modo Infinito -->
-            <div id="infinite-loader" style="display: none; font-size: 0.75rem; color: #ffe600; margin-bottom: 8px;">
-                ⚡ Cargando más preguntas en segundo plano...
-            </div>
-
-            <main id="quiz">
-                <h2 id="question">Cargando pregunta...</h2>
-                <div id="options-container"></div>
-            </main>
-
-            <div id="game-over-screen" style="display: none;">
-                <h2>GAME OVER</h2>
-                <p>Tu puntuación final: <span id="score-over">0</span></p>
-                <div id="infinite-game-over-stats" style="display: none; margin: 10px 0;">
-                    <p style="color: #ffe600;">Racha alcanzada: <span id="final-streak-over">0</span></p>
-                    <p style="color: #00feff;">Mejor racha histórica: <span id="best-streak-over">0</span></p>
-                </div>
-                <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN</button>
-            </div>
-
-            <div id="message"></div>
-        </div>
+        <!-- Contenido del juego -->
     </div>
 
-<!-- Carga ordenada de scripts -->
     <script src="sonidos.js"></script>
-    <script src="tienda.js"></script>
-    <script src="modo-infinito.js"></script>
     <script src="script.js"></script>
+    <script src="tienda.js"></script>
+
+    <!-- VERIFICACIÓN DE SESIÓN -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+            if (!usuarioActual) {
+                window.location.href = "index.html";
+            }
+        });
+    </script>
 </body>
 </html>
