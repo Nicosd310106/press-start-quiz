@@ -393,3 +393,9 @@ function volverAlMenu() {
 
     actualizarPantallaTienda();
 }
+
+// --- CERRAR SESIÓN ---
+function cerrarSesion() {
+    localStorage.removeItem("press_start_usuario_actual");
+    window.location.href = "login.html";
+}
