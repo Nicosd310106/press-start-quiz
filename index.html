@@ -3,184 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Press Start Quiz</title>
+    <title>Press Start Quiz - Bienvenido</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-container {
+            max-width: 480px;
+            margin: 40px auto;
+            background: rgba(15, 15, 25, 0.95);
+            border: 3px solid #ff0055;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+            text-align: center;
+        }
+        .welcome-title {
+            color: #ffe600;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px #ffe600;
+        }
+        .welcome-sub {
+            color: #00feff;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #ff0055;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 10px #ff0055;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            color: #00feff;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #00feff;
+            border-radius: 6px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #ffe600;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 0 10px #ffe600;
+        }
+        .btn-submit:hover {
+            transform: scale(1.02);
+        }
+        .alert-msg {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert-success { background: rgba(0, 255, 128, 0.2); border: 1px solid #00ff80; color: #00ff80; }
+        .alert-error { background: rgba(255, 0, 85, 0.2); border: 1px solid #ff0055; color: #ff0055; }
+    </style>
 </head>
 <body>
     <div class="game-container">
-        <header>
+        <header style="text-align: center; margin-top: 20px;">
             <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
             <h1>Press Start Quiz</h1>
         </header>
 
-        <div id="menu">
-            <!-- PASO 1: Selección de Género -->
-            <div id="genre-selection">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <p class="menu-subtitle" style="margin: 0;">Elige el género de videojuegos</p>
-                    <button class="btn-powerup" onclick="abrirTienda()" style="width: auto; padding: 4px 10px;">
-                        🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
-                    </button>
+        <div class="auth-container">
+            <h2 class="welcome-title">🎮 ¡BIENVENIDO A ARCADE QUIZ!</h2>
+            <p class="welcome-sub">Crea tu cuenta para guardar tus monedas, comodines y récords.</p>
+
+            <div id="alert-box" class="alert-msg"></div>
+
+            <!-- Pestañas para cambiar entre Crear Cuenta e Iniciar Sesión -->
+            <div class="tabs">
+                <button id="tab-register" class="tab-btn active" onclick="mostrarPestana('register')">1. CREAR CUENTA</button>
+                <button id="tab-login" class="tab-btn" onclick="mostrarPestana('login')">2. INICIAR SESIÓN</button>
+            </div>
+
+            <!-- FORMULARIO 1: CREAR CUENTA -->
+            <form id="form-register" onsubmit="registrarCuenta(event)">
+                <div class="form-group">
+                    <label for="reg-username">NOMBRE DE JUGADOR (NICKNAME):</label>
+                    <input type="text" id="reg-username" required placeholder="Ej: GamerRetro99">
                 </div>
-                
-                <div class="menu-options" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
-                    <button class="btn-genre" data-genre="Survival Horror">
-                        <span class="diff-icon">🧟</span>
-                        <span class="diff-label">Survival Horror</span>
-                    </button>
-                    <button class="btn-genre" data-genre="RPG">
-                        <span class="diff-icon">⚔️</span>
-                        <span class="diff-label">RPG</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Acción y Aventura">
-                        <span class="diff-icon">🔥</span>
-                        <span class="diff-label">Acción y Aventura</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Shooter">
-                        <span class="diff-icon">🎯</span>
-                        <span class="diff-label">Shooter / Disparos</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Lucha">
-                        <span class="diff-icon">🥊</span>
-                        <span class="diff-label">Lucha / Peleas</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Plataformas">
-                        <span class="diff-icon">🍄</span>
-                        <span class="diff-label">Plataformas</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Estrategia">
-                        <span class="diff-icon">♟️</span>
-                        <span class="diff-label">Estrategia</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Simulación">
-                        <span class="diff-icon">🏗️</span>
-                        <span class="diff-label">Simulación</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Carreras">
-                        <span class="diff-icon">🏎️</span>
-                        <span class="diff-label">Carreras</span>
-                    </button>
-                    <button class="btn-genre" data-genre="Deportes">
-                        <span class="diff-icon">⚽</span>
-                        <span class="diff-label">Deportes</span>
-                    </button>
+                <div class="form-group">
+                    <label for="reg-password">CONTRASEÑA:</label>
+                    <input type="password" id="reg-password" required placeholder="••••••••">
                 </div>
-            </div>
+                <button type="submit" class="btn-submit">💾 GUARDAR Y PASAR A LOGIN</button>
+            </form>
 
-            <!-- PASO 2: Selección de Dificultad -->
-            <div id="difficulty-selection" style="display: none;">
-                <p class="menu-subtitle">Género: <span id="selected-genre-label" style="color: #ff0055;"></span></p>
-                <p class="menu-subtitle">Elige tu dificultad</p>
-                <div class="menu-options">
-                    <button class="btn-difficulty" data-level="Fácil">
-                        <span class="diff-icon">★</span>
-                        <span class="diff-label">Fácil</span>
-                        <span class="diff-desc">Para calentar motores</span>
-                    </button>
-                    <button class="btn-difficulty" data-level="Media">
-                        <span class="diff-icon">★★</span>
-                        <span class="diff-label">Media</span>
-                        <span class="diff-desc">Para jugadores casuales</span>
-                    </button>
-                    <button class="btn-difficulty" data-level="Difícil">
-                        <span class="diff-icon">★★★</span>
-                        <span class="diff-label">Difícil</span>
-                        <span class="diff-desc">Solo para veteranos</span>
-                    </button>
-                    <button class="btn-difficulty btn-todas" data-level="Todas">
-                        <span class="diff-icon">🎮</span>
-                        <span class="diff-label">Todas</span>
-                        <span class="diff-desc">Mezcla de todo nivel</span>
-                    </button>
-                    <button class="btn-difficulty btn-infinite" data-level="Infinito" style="border-color: #ffe600;">
-                        <span class="diff-icon">♾️</span>
-                        <span class="diff-label" style="color: #ffe600;">Modo Infinito</span>
-                        <span class="diff-desc">¡Juega hasta fallar!</span>
-                    </button>
+            <!-- FORMULARIO 2: INICIAR SESIÓN -->
+            <form id="form-login" onsubmit="iniciarSesion(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="login-username">NOMBRE DE JUGADOR:</label>
+                    <input type="text" id="login-username" required placeholder="Tu nickname registrado">
                 </div>
-                <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
-            </div>
-
-            <!-- PANTALLA DE LA TIENDA DE AYUDAS -->
-            <div id="shop-screen" style="display: none;">
-                <h2 style="color: #ffe600; font-size: 1.2rem; margin-bottom: 5px;">🛒 TIENDA ARCADE</h2>
-                <p class="menu-subtitle">Puntos disponibles: <span id="shop-points-display" style="color: #00feff; font-weight: bold;">0</span></p>
-                
-                <div class="menu-options" style="gap: 10px;">
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✂️ 50/50 ($30 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Elimina dos opciones incorrectas.</div>
-                        <button onclick="comprarComodin('mitad')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-mitad">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">🛡️ Escudo ($50 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Te perdona 1 respuesta incorrecta.</div>
-                        <button onclick="comprarComodin('escudo')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-escudo">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">⏭️ Saltar Pregunta ($20 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Avanza a la siguiente pregunta sin penalización.</div>
-                        <button onclick="comprarComodin('saltar')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-saltar">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✨ Doble Puntuación ($40 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Duplica los puntos recibidos en la respuesta.</div>
-                        <button onclick="comprarComodin('doble')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-doble">0</span>)</button>
-                    </div>
+                <div class="form-group">
+                    <label for="login-password">CONTRASEÑA:</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
                 </div>
-
-                <button onclick="cerrarTienda()" class="btn-option" style="margin-top: 15px;">← Volver al Menú</button>
-            </div>
-        </div>
-
-        <div id="game" style="display: none;">
-            <!-- HUD Superior del Juego -->
-            <div id="status">
-                <span id="difficulty-badge">Fácil</span>
-                <span id="score-display">Puntos: 0</span>
-                <span id="infinite-streak-badge" style="display: none; color: #ffe600; font-weight: bold;">Racha: <span id="streak-display">0</span></span>
-            </div>
-
-            <!-- HUD de Comodines en Partida -->
-            <div id="shop-hud" style="margin-bottom: 10px; display: flex; gap: 4px; justify-content: center;">
-                <button id="btn-powerup-mitad" class="btn-powerup" onclick="usarComodin('mitad')">✂️ 50/50 (<span id="cant-mitad">0</span>)</button>
-                <button id="btn-powerup-escudo" class="btn-powerup" onclick="usarComodin('escudo')">🛡️ Escudo (<span id="cant-escudo">0</span>)</button>
-                <button id="btn-powerup-saltar" class="btn-powerup" onclick="usarComodin('saltar')">⏭️ Saltar (<span id="cant-saltar">0</span>)</button>
-                <button id="btn-powerup-doble" class="btn-powerup" onclick="usarComodin('doble')">✨ x2 Pts (<span id="cant-doble">0</span>)</button>
-            </div>
-
-            <!-- Indicador de Precarga de Modo Infinito -->
-            <div id="infinite-loader" style="display: none; font-size: 0.75rem; color: #ffe600; margin-bottom: 8px;">
-                ⚡ Cargando más preguntas en segundo plano...
-            </div>
-
-            <main id="quiz">
-                <h2 id="question">Cargando pregunta...</h2>
-                <div id="options-container"></div>
-            </main>
-
-            <div id="game-over-screen" style="display: none;">
-                <h2>GAME OVER</h2>
-                <p>Tu puntuación final: <span id="score-over">0</span></p>
-                <div id="infinite-game-over-stats" style="display: none; margin: 10px 0;">
-                    <p style="color: #ffe600;">Racha alcanzada: <span id="final-streak-over">0</span></p>
-                    <p style="color: #00feff;">Mejor racha histórica: <span id="best-streak-over">0</span></p>
-                </div>
-                <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN</button>
-            </div>
-
-            <div id="message"></div>
+                <button type="submit" class="btn-submit">🚀 ENTRAR A JUGAR</button>
+            </form>
         </div>
     </div>
 
-<!-- Carga ordenada de scripts -->
     <script src="sonidos.js"></script>
-    <script src="tienda.js"></script>
-    <script src="modo-infinito.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+    <script>
+        function mostrarPestana(pestana) {
+            const formReg = document.getElementById('form-register');
+            const formLog = document.getElementById('form-login');
+            const tabReg = document.getElementById('tab-register');
+            const tabLog = document.getElementById('tab-login');
+            const alertBox = document.getElementById('alert-box');
+
+            alertBox.style.display = 'none';
+
+            if (pestana === 'register') {
+                formReg.style.display = 'block';
+                formLog.style.display = 'none';
+                tabReg.classList.add('active');
+                tabLog.classList.remove('active');
+            } else {
+                formReg.style.display = 'none';
+                formLog.style.display = 'block';
+                tabLog.classList.add('active');
+                tabReg.classList.remove('active');
+            }
+        }
+
+        function mostrarAlerta(mensaje, esError = false) {
+            const alertBox = document.getElementById('alert-box');
+            alertBox.innerText = mensaje;
+            alertBox.className = esError ? 'alert-msg alert-error' : 'alert-msg alert-success';
+            alertBox.style.display = 'block';
+        }
+
+        // Obtener la base de datos local de usuarios
+        function obtenerUsuarios() {
+            const users = localStorage.getItem('press_start_usuarios_db');
+            return users ? JSON.parse(users) : {};
+        }
+
+        // 1. REGISTRAR CUENTA
+        function registrarCuenta(e) {
+            e.preventDefault();
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value;
+
+            if (!user || !pass) return;
+
+            const usuarios = obtenerUsuarios();
+
+            if (usuarios[user]) {
+                if (typeof Sonidos !== 'undefined') Sonidos.playError();
+                mostrarAlerta("❌ Ese nombre de usuario ya existe. Prueba con otro.", true);
+                return;
+            }
+
+            // Registrar nuevo usuario con su propio inventario y monedas en 0
+            usuarios[user] = {
+                password: pass,
+                puntos: 0,
+                inventario: { mitad: 0, escudo: 0, saltar: 0, doble: 0 }
+            };
+
+            localStorage.setItem('press_start_usuarios_db', JSON.stringify(usuarios));
+
+            if (typeof Sonidos !== 'undefined') Sonidos.playAcierto();
+            
+            // Mostrar mensaje de éxito y PASAR AUTOMÁTICAMENTE a Iniciar Sesión
+            mostrarAlerta("✅ ¡Cuenta creada con éxito! Ahora inicia sesión para comenzar.");
+            
+            // Llenar el campo del usuario en el login por comodidad
+            document.getElementById('login-username').value = user;
+
+            setTimeout(() => {
+                mostrarPestana('login');
+            }, 1200);
+        }
+
+        // 2. INICIAR SESIÓN Y MANDER AL JUEGO
+        function iniciarSesion(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value;
+
+            const usuarios = obtenerUsuarios();
+
+            if (!usuarios[user] || usuarios[user].password !== pass) {
+                if (typeof Son
