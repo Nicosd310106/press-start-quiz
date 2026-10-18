@@ -3,51 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Press Start Quiz - Bienvenido</title>
+    <title>Press Start Quiz - Bienvenida</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
     <style>
-        .auth-container {
-            max-width: 480px;
-            margin: 40px auto;
+        .auth-card {
+            max-width: 550px;
+            margin: 30px auto;
             background: rgba(15, 15, 25, 0.95);
             border: 3px solid #ff0055;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+            padding: 30px;
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.4);
             text-align: center;
+        }
+        .welcome-box {
+            background: rgba(255, 0, 85, 0.1);
+            border: 2px dashed #ff0055;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
         .welcome-title {
             color: #ffe600;
             font-size: 1.5rem;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-shadow: 0 0 8px #ffe600;
-        }
-        .welcome-sub {
-            color: #00feff;
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: #111;
-            border: 1px solid #ff0055;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 6px;
             font-weight: bold;
-            transition: all 0.2s;
         }
-        .tab-btn.active {
-            background: #ff0055;
-            color: #fff;
-            box-shadow: 0 0 10px #ff0055;
+        .welcome-text {
+            color: #ffffff;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+            text-align: justify;
         }
         .form-group {
             text-align: left;
@@ -58,6 +47,7 @@
             color: #00feff;
             font-size: 0.85rem;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         .form-group input {
             width: 100%;
@@ -72,18 +62,20 @@
         .btn-submit {
             width: 100%;
             padding: 12px;
-            background: #ffe600;
+            background: #ff0055;
             border: none;
-            color: #000;
+            color: #fff;
             font-weight: bold;
             font-size: 1.1rem;
             border-radius: 6px;
             cursor: pointer;
             margin-top: 10px;
-            box-shadow: 0 0 10px #ffe600;
+            box-shadow: 0 0 12px #ff0055;
+            transition: all 0.2s;
         }
         .btn-submit:hover {
             transform: scale(1.02);
+            background: #ff2a75;
         }
         .alert-msg {
             padding: 10px;
@@ -92,8 +84,18 @@
             font-size: 0.9rem;
             display: none;
         }
-        .alert-success { background: rgba(0, 255, 128, 0.2); border: 1px solid #00ff80; color: #00ff80; }
         .alert-error { background: rgba(255, 0, 85, 0.2); border: 1px solid #ff0055; color: #ff0055; }
+        .alert-success { background: rgba(0, 255, 128, 0.2); border: 1px solid #00ff80; color: #00ff80; }
+        .link-alt {
+            display: block;
+            margin-top: 18px;
+            color: #ffe600;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .link-alt:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -103,128 +105,72 @@
             <h1>Press Start Quiz</h1>
         </header>
 
-        <div class="auth-container">
-            <h2 class="welcome-title">🎮 ¡BIENVENIDO A ARCADE QUIZ!</h2>
-            <p class="welcome-sub">Crea tu cuenta para guardar tus monedas, comodines y récords.</p>
+        <div class="auth-card">
+            <!-- MENSAJE DE BIENVENIDA -->
+            <div class="welcome-box">
+                <h2 class="welcome-title">¡BIENVENIDO a Press Start Quiz!</h2>
+                <p class="welcome-text">
+Un mundo diseñado para poner a prueba tus conocimientos sobre videojuegos. Mientras más avances en las rondas, obtendrás monedas que te ayudarán a conseguir importantes ventajas. Si quieres demostrar de qué estás hecho, crea tu cuenta haciendo clic en el botón de abajo.
+                </p>
+            </div>
 
             <div id="alert-box" class="alert-msg"></div>
 
-            <!-- Pestañas para cambiar entre Crear Cuenta e Iniciar Sesión -->
-            <div class="tabs">
-                <button id="tab-register" class="tab-btn active" onclick="mostrarPestana('register')">1. CREAR CUENTA</button>
-                <button id="tab-login" class="tab-btn" onclick="mostrarPestana('login')">2. INICIAR SESIÓN</button>
-            </div>
-
-            <!-- FORMULARIO 1: CREAR CUENTA -->
-            <form id="form-register" onsubmit="registrarCuenta(event)">
+            <!-- FORMULARIO PARA CREAR LA CUENTA -->
+            <form onsubmit="registrarCuenta(event)">
                 <div class="form-group">
-                    <label for="reg-username">NOMBRE DE JUGADOR (NICKNAME):</label>
-                    <input type="text" id="reg-username" required placeholder="Ej: GamerRetro99">
+                    <label for="reg-user">NOMBRE DE JUGADOR (NICKNAME):</label>
+                    <input type="text" id="reg-user" required placeholder="Crea tu Nickname">
                 </div>
                 <div class="form-group">
-                    <label for="reg-password">CONTRASEÑA:</label>
-                    <input type="password" id="reg-password" required placeholder="••••••••">
+                    <label for="reg-pass">CONTRASEÑA:</label>
+                    <input type="password" id="reg-pass" required placeholder="Crea tu clave secreta">
                 </div>
-                <button type="submit" class="btn-submit">💾 GUARDAR Y PASAR A LOGIN</button>
+                <button type="submit" class="btn-submit">🎮 CREAR UNA CUENTA</button>
             </form>
 
-            <!-- FORMULARIO 2: INICIAR SESIÓN -->
-            <form id="form-login" onsubmit="iniciarSesion(event)" style="display: none;">
-                <div class="form-group">
-                    <label for="login-username">NOMBRE DE JUGADOR:</label>
-                    <input type="text" id="login-username" required placeholder="Tu nickname registrado">
-                </div>
-                <div class="form-group">
-                    <label for="login-password">CONTRASEÑA:</label>
-                    <input type="password" id="login-password" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn-submit">🚀 ENTRAR A JUGAR</button>
-            </form>
+            <a href="login.html" class="link-alt">¿Ya tienes una cuenta? Inicia sesión aquí →</a>
         </div>
     </div>
 
     <script src="sonidos.js"></script>
     <script>
-        function mostrarPestana(pestana) {
-            const formReg = document.getElementById('form-register');
-            const formLog = document.getElementById('form-login');
-            const tabReg = document.getElementById('tab-register');
-            const tabLog = document.getElementById('tab-login');
-            const alertBox = document.getElementById('alert-box');
-
-            alertBox.style.display = 'none';
-
-            if (pestana === 'register') {
-                formReg.style.display = 'block';
-                formLog.style.display = 'none';
-                tabReg.classList.add('active');
-                tabLog.classList.remove('active');
-            } else {
-                formReg.style.display = 'none';
-                formLog.style.display = 'block';
-                tabLog.classList.add('active');
-                tabReg.classList.remove('active');
-            }
-        }
-
-        function mostrarAlerta(mensaje, esError = false) {
-            const alertBox = document.getElementById('alert-box');
-            alertBox.innerText = mensaje;
-            alertBox.className = esError ? 'alert-msg alert-error' : 'alert-msg alert-success';
-            alertBox.style.display = 'block';
-        }
-
-        // Obtener la base de datos local de usuarios
-        function obtenerUsuarios() {
-            const users = localStorage.getItem('press_start_usuarios_db');
-            return users ? JSON.parse(users) : {};
-        }
-
-        // 1. REGISTRAR CUENTA
         function registrarCuenta(e) {
             e.preventDefault();
-            const user = document.getElementById('reg-username').value.trim();
-            const pass = document.getElementById('reg-password').value;
+            const user = document.getElementById('reg-user').value.trim();
+            const pass = document.getElementById('reg-pass').value;
+            const alertBox = document.getElementById('alert-box');
 
-            if (!user || !pass) return;
+            const users = JSON.parse(localStorage.getItem('press_start_usuarios_db') || '{}');
 
-            const usuarios = obtenerUsuarios();
-
-            if (usuarios[user]) {
+            if (users[user]) {
                 if (typeof Sonidos !== 'undefined') Sonidos.playError();
-                mostrarAlerta("❌ Ese nombre de usuario ya existe. Prueba con otro.", true);
+                alertBox.innerText = "❌ Este usuario ya existe. Elige otro nombre de jugador.";
+                alertBox.className = "alert-msg alert-error";
+                alertBox.style.display = "block";
                 return;
             }
 
-            // Registrar nuevo usuario con su propio inventario y monedas en 0
-            usuarios[user] = {
+            users[user] = {
                 password: pass,
                 puntos: 0,
                 inventario: { mitad: 0, escudo: 0, saltar: 0, doble: 0 }
             };
 
-            localStorage.setItem('press_start_usuarios_db', JSON.stringify(usuarios));
+            localStorage.setItem('press_start_usuarios_db', JSON.stringify(users));
 
             if (typeof Sonidos !== 'undefined') Sonidos.playAcierto();
-            
-            // Mostrar mensaje de éxito y PASAR AUTOMÁTICAMENTE a Iniciar Sesión
-            mostrarAlerta("✅ ¡Cuenta creada con éxito! Ahora inicia sesión para comenzar.");
-            
-            // Llenar el campo del usuario en el login por comodidad
-            document.getElementById('login-username').value = user;
+
+            alertBox.innerText = "✅ ¡Cuenta creada con éxito! Redirigiendo a Iniciar Sesión...";
+            alertBox.className = "alert-msg alert-success";
+            alertBox.style.display = "block";
+
+            localStorage.setItem('temp_registered_user', user);
 
             setTimeout(() => {
-                mostrarPestana('login');
+                window.location.href = "login.html";
             }, 1200);
         }
-
-        // 2. INICIAR SESIÓN Y MANDER AL JUEGO
-        function iniciarSesion(e) {
-            e.preventDefault();
-            const user = document.getElementById('login-username').value.trim();
-            const pass = document.getElementById('login-password').value;
-
-            const usuarios = obtenerUsuarios();
-
-            if (!usuarios[user] || usuarios[user].password !== pass) {
-                if (typeof Son
+    </script>
+</body>
+</html>
