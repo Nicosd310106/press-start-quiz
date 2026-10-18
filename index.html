@@ -93,9 +93,7 @@
             text-decoration: none;
             font-size: 0.9rem;
         }
-        .link-alt:hover {
-            text-decoration: underline;
-        }
+        .link-alt:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -106,17 +104,17 @@
         </header>
 
         <div class="auth-card">
-            <!-- MENSAJE DE BIENVENIDA -->
             <div class="welcome-box">
-                <h2 class="welcome-title">¡BIENVENIDO a Press Start Quiz!</h2>
+                <h2 class="welcome-title">🎮 ¡BIENVENIDO A PRESS START QUIZ!</h2>
                 <p class="welcome-text">
-                    Un mundo diseñado para poner a prueba tus conocimientos sobre videojuegos. Mientras más avances en las rondas, obtendrás monedas que te ayudarán a conseguir importantes ventajas. Si quieres demostrar de qué estás hecho, crea tu cuenta haciendo clic en el botón de abajo.
+                    El lugar donde pondrás a prueba todo lo que sabes sobre el universo de los videojuegos. A medida que superes niveles y demuestres tu habilidad, ganarás monedas para comprar comodines y ventajas en la tienda.
+                    <br><br>
+                    ¿Estás listo para el reto? <strong>Crea tu cuenta</strong> a continuación y ¡comienza a jugar!
                 </p>
             </div>
 
             <div id="alert-box" class="alert-msg"></div>
 
-            <!-- FORMULARIO PARA CREAR LA CUENTA -->
             <form onsubmit="registrarCuenta(event)">
                 <div class="form-group">
                     <label for="reg-user">NOMBRE DE JUGADOR (NICKNAME):</label>
@@ -145,7 +143,7 @@
 
             if (users[user]) {
                 if (typeof Sonidos !== 'undefined') Sonidos.playError();
-                alertBox.innerText = "❌ Este usuario ya existe. Elige otro nombre de jugador.";
+                alertBox.innerText = "❌ Este usuario ya existe. Elige otro nombre.";
                 alertBox.className = "alert-msg alert-error";
                 alertBox.style.display = "block";
                 return;

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Start Quiz - Juego</title>
+    <link rel="icon" type="image/png" href="Logo.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- AQUÍ VA TODO EL HTML DE TU JUEGO PRINCIPAL (PREGUNTAS, TIENDA, MONEDAS, etc.) -->
+    <div class="game-container">
+        <!-- Contenido del juego -->
+    </div>
+
+    <script src="sonidos.js"></script>
+    <script src="script.js"></script>
+    <script src="tienda.js"></script>
+
+    <!-- VERIFICACIÓN DE SESIÓN -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+            if (!usuarioActual) {
+                window.location.href = "index.html";
+            }
+        });
+    </script>
+</body>
+</html>

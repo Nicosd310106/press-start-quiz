@@ -83,9 +83,7 @@
             text-decoration: none;
             font-size: 0.9rem;
         }
-        .link-alt:hover {
-            text-decoration: underline;
-        }
+        .link-alt:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -119,7 +117,6 @@
 
     <script src="sonidos.js"></script>
     <script>
-        // Rellenar automáticamente el nombre si acaba de registrarse en index.html
         window.addEventListener('DOMContentLoaded', () => {
             const tempUser = localStorage.getItem('temp_registered_user');
             if (tempUser) {
@@ -144,7 +141,6 @@
                 return;
             }
 
-            // Guardar usuario en sesión activa
             localStorage.setItem('press_start_usuario_actual', user);
 
             if (typeof Sonidos !== 'undefined') Sonidos.playPowerUp();
@@ -153,9 +149,9 @@
             alertBox.className = "alert-msg alert-success";
             alertBox.style.display = "block";
 
-            // Redirigir al juego principal en Vercel
+            // Redirige al juego
             setTimeout(() => {
-                window.location.href = "https://press-start-quiz.vercel.app/";
+                window.location.href = "juego.html";
             }, 1000);
         }
     </script>
