@@ -5,7 +5,7 @@
 const Tienda = {
   puntosDisponibles: 0,
   inventario: {
-    mitad: 0,   // Quita 2 opciones incorrectas ($50/50$)
+    mitad: 0,   // Quita 2 opciones incorrectas (50/50)
     escudo: 0,  // Perdona 1 fallo
     saltar: 0,  // Cambia de pregunta sin perder
     doble: 0    // Duplica los puntos de la siguiente
@@ -56,6 +56,11 @@ const Tienda = {
       this.puntosDisponibles -= precio;
       this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
       this.guardarDatos();
+
+      // Reproducir sonido de compra retro
+      if (typeof Sonidos !== 'undefined') {
+        Sonidos.playCompra();
+      }
       return true;
     }
     return false;

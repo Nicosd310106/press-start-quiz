@@ -30,7 +30,6 @@ export default async function handler(req, res) {
   let genre = 'RPG';
 
   try {
-    // Parseo seguro del body
     if (req.body) {
       let body = req.body;
       if (Buffer.isBuffer(body)) {
@@ -52,7 +51,6 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
-  // Si no hay API Key configurada en Vercel, responder con respaldo inmediatamente
   if (!apiKey) {
     console.warn('GEMINI_API_KEY no encontrada. Devolviendo preguntas de respaldo.');
     const respaldo = PREGUNTAS_RESPALDO[genre] || PREGUNTAS_RESPALDO["RPG"];
@@ -130,7 +128,6 @@ export default async function handler(req, res) {
     console.error('Error durante la ejecución serverless:', err);
   }
 
-  // Si la llamada falla o sobrepasa el timeout, devuelve el respaldo sin tirar 500
   const respaldo = PREGUNTAS_RESPALDO[genre] || PREGUNTAS_RESPALDO["RPG"];
   return res.status(200).json(respaldo);
 }

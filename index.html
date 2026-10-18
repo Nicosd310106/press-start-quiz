@@ -17,7 +17,13 @@
         <div id="menu">
             <!-- PASO 1: Selección de Género -->
             <div id="genre-selection">
-                <p class="menu-subtitle">Elige el género de videojuegos</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <p class="menu-subtitle" style="margin: 0;">Elige el género de videojuegos</p>
+                    <button class="btn-powerup" onclick="abrirTienda()" style="width: auto; padding: 4px 10px;">
+                        🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
+                    </button>
+                </div>
+                
                 <div class="menu-options" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
                     <button class="btn-genre" data-genre="Survival Horror">
                         <span class="diff-icon">🧟</span>
@@ -95,14 +101,61 @@
                 </div>
                 <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
             </div>
+
+            <!-- PANTALLA DE LA TIENDA DE AYUDAS -->
+            <div id="shop-screen" style="display: none;">
+                <h2 style="color: #ffe600; font-size: 1.2rem; margin-bottom: 5px;">🛒 TIENDA ARCADE</h2>
+                <p class="menu-subtitle">Puntos disponibles: <span id="shop-points-display" style="color: #00feff; font-weight: bold;">0</span></p>
+                
+                <div class="menu-options" style="gap: 10px;">
+                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
+                        <div style="font-weight: bold; color: #00feff;">✂️ 50/50 ($30 pts)</div>
+                        <div style="font-size: 0.75rem; color: #ccc;">Elimina dos opciones incorrectas.</div>
+                        <button onclick="comprarComodin('mitad')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-mitad">0</span>)</button>
+                    </div>
+
+                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
+                        <div style="font-weight: bold; color: #00feff;">🛡️ Escudo ($50 pts)</div>
+                        <div style="font-size: 0.75rem; color: #ccc;">Te perdona 1 respuesta incorrecta.</div>
+                        <button onclick="comprarComodin('escudo')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-escudo">0</span>)</button>
+                    </div>
+
+                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
+                        <div style="font-weight: bold; color: #00feff;">⏭️ Saltar Pregunta ($20 pts)</div>
+                        <div style="font-size: 0.75rem; color: #ccc;">Avanza a la siguiente pregunta sin penalización.</div>
+                        <button onclick="comprarComodin('saltar')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-saltar">0</span>)</button>
+                    </div>
+
+                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
+                        <div style="font-weight: bold; color: #00feff;">✨ Doble Puntuación ($40 pts)</div>
+                        <div style="font-size: 0.75rem; color: #ccc;">Duplica los puntos recibidos en la respuesta.</div>
+                        <button onclick="comprarComodin('doble')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-doble">0</span>)</button>
+                    </div>
+                </div>
+
+                <button onclick="cerrarTienda()" class="btn-option" style="margin-top: 15px;">← Volver al Menú</button>
+            </div>
         </div>
 
         <div id="game" style="display: none;">
+            <!-- HUD Superior del Juego -->
             <div id="status">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
-                <span style="display: none;">Racha: <span id="streak-display">0</span></span>
-                <span style="display: none;">Mejor: <span id="best-streak-display">0</span></span>
+                <span id="infinite-streak-badge" style="display: none; color: #ffe600; font-weight: bold;">Racha: <span id="streak-display">0</span></span>
+            </div>
+
+            <!-- HUD de Comodines en Partida -->
+            <div id="shop-hud" style="margin-bottom: 10px; display: flex; gap: 4px; justify-content: center;">
+                <button id="btn-powerup-mitad" class="btn-powerup" onclick="usarComodin('mitad')">✂️ 50/50 (<span id="cant-mitad">0</span>)</button>
+                <button id="btn-powerup-escudo" class="btn-powerup" onclick="usarComodin('escudo')">🛡️ Escudo (<span id="cant-escudo">0</span>)</button>
+                <button id="btn-powerup-saltar" class="btn-powerup" onclick="usarComodin('saltar')">⏭️ Saltar (<span id="cant-saltar">0</span>)</button>
+                <button id="btn-powerup-doble" class="btn-powerup" onclick="usarComodin('doble')">✨ x2 Pts (<span id="cant-doble">0</span>)</button>
+            </div>
+
+            <!-- Indicador de Precarga de Modo Infinito -->
+            <div id="infinite-loader" style="display: none; font-size: 0.75rem; color: #ffe600; margin-bottom: 8px;">
+                ⚡ Cargando más preguntas en segundo plano...
             </div>
 
             <main id="quiz">
@@ -113,9 +166,9 @@
             <div id="game-over-screen" style="display: none;">
                 <h2>GAME OVER</h2>
                 <p>Tu puntuación final: <span id="score-over">0</span></p>
-                <div id="infinite-game-over-stats" style="display: none;">
-                    <p>Racha alcanzada: <span id="final-streak-over">0</span></p>
-                    <p>Mejor racha histórica: <span id="best-streak-over">0</span></p>
+                <div id="infinite-game-over-stats" style="display: none; margin: 10px 0;">
+                    <p style="color: #ffe600;">Racha alcanzada: <span id="final-streak-over">0</span></p>
+                    <p style="color: #00feff;">Mejor racha histórica: <span id="best-streak-over">0</span></p>
                 </div>
                 <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN</button>
             </div>
@@ -124,6 +177,8 @@
         </div>
     </div>
 
+    <!-- Carga ordenada de scripts -->
+    <script src="tienda.js"></script>
     <script src="modo-infinito.js"></script>
     <script src="script.js"></script>
 </body>
