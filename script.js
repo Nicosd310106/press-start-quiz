@@ -9,7 +9,7 @@ let nivelActualLabel = "";
 let multiplicadorPuntos = 1;
 let escudoActivo = false;
 
-// Verificación de sesión al cargar el DOM
+// Verificación de sesión e inicialización cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
     const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
@@ -58,6 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof actualizarPantallaTienda === "function") {
         actualizarPantallaTienda();
     }
+
+    // Cargar la tabla de posiciones desde MySQL
+    cargarRanking();
 });
 
 // Reproducir sonido de clic global
@@ -68,6 +71,30 @@ document.addEventListener("click", (e) => {
         }
     }
 });
+
+async function cargarRanking() {
+    const listaEl = document.getElementById("ranking-lista");
+    if (!listaEl) return;
+
+    try {
+        const res = await fetch('/api/ranking');
+        const data = await res.json();
+
+        if (res.ok && data.ranking && data.ranking.length > 0) {
+            listaEl.innerHTML = "";
+            data.ranking.forEach((jugador) => {
+                const li = document.createElement("li");
+                li.style.margin = "4px 0";
+                li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${jugador.puntos_totales} pts</span>`;
+                listaEl.appendChild(li);
+            });
+        } else {
+            listaEl.innerHTML = "<li>No hay puntajes registrados aún.</li>";
+        }
+    } catch (error) {
+        listaEl.innerHTML = "<li>Conecta MySQL para ver las posiciones.</li>";
+    }
+}
 
 async function fetchPreguntasServerless(genre, level, count = 10, exclude = []) {
     const response = await fetch("/api/generar", {
@@ -202,6 +229,9 @@ function volverAlMenu() {
     if (gameOverScreen) gameOverScreen.style.display = "none";
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
+
+    // Recargar el ranking al volver al menú
+    cargarRanking();
 }
 
 function cerrarSesion() {
