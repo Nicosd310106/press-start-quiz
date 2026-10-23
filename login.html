@@ -39,15 +39,32 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
+        .input-password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
         .form-group input {
             width: 100%;
             padding: 10px;
+            padding-right: 45px;
             background: #000;
             border: 1px solid #00feff;
             border-radius: 6px;
             color: #fff;
             box-sizing: border-box;
             font-size: 1rem;
+        }
+        .btn-toggle-pass {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: #00feff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px;
+            user-select: none;
         }
         .btn-submit {
             width: 100%;
@@ -106,7 +123,10 @@
                 </div>
                 <div class="form-group">
                     <label for="login-pass">CONTRASEÑA:</label>
-                    <input type="password" id="login-pass" required placeholder="Tu contraseña">
+                    <div class="input-password-wrapper">
+                        <input type="password" id="login-pass" required placeholder="Tu contraseña">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-pass', this)" title="Mostrar/Ocultar contraseña">👁️ /</button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-submit">🚀 INICIAR SESIÓN Y JUGAR</button>
             </form>
@@ -124,6 +144,18 @@
                 localStorage.removeItem('temp_registered_user');
             }
         });
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.innerText = "👁️";
+            } else {
+                input.type = "password";
+                btn.innerText = "👁️ /";
+            }
+        }
 
         function iniciarSesion(e) {
             e.preventDefault();

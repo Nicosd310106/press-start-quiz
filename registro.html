@@ -6,15 +6,6 @@
     <title>Press Start Quiz - Crear Cuenta</title>
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
-    <script>
-        // Si el usuario ya inició sesión, redirigir directamente al juego
-        (function() {
-            const usuarioActual = localStorage.getItem("press_start_usuario_actual");
-            if (usuarioActual) {
-                window.location.replace("index.html");
-            }
-        })();
-    </script>
     <style>
         .auth-card {
             max-width: 480px;
@@ -48,15 +39,32 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
+        .input-password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
         .form-group input {
             width: 100%;
             padding: 10px;
+            padding-right: 45px;
             background: #000;
             border: 1px solid #00feff;
             border-radius: 6px;
             color: #fff;
             box-sizing: border-box;
             font-size: 1rem;
+        }
+        .btn-toggle-pass {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: #00feff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px;
+            user-select: none;
         }
         .btn-submit {
             width: 100%;
@@ -115,11 +123,17 @@
                 </div>
                 <div class="form-group">
                     <label for="reg-pass">CONTRASEÑA:</label>
-                    <input type="password" id="reg-pass" required placeholder="Crea una contraseña">
+                    <div class="input-password-wrapper">
+                        <input type="password" id="reg-pass" required placeholder="Crea una contraseña">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('reg-pass', this)" title="Mostrar/Ocultar contraseña">👁️ /</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="reg-pass-confirm">CONFIRMAR CONTRASEÑA:</label>
-                    <input type="password" id="reg-pass-confirm" required placeholder="Repite la contraseña">
+                    <div class="input-password-wrapper">
+                        <input type="password" id="reg-pass-confirm" required placeholder="Repite la contraseña">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('reg-pass-confirm', this)" title="Mostrar/Ocultar contraseña">👁️ /</button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-submit">🎮 REGISTRARSE</button>
             </form>
@@ -130,6 +144,18 @@
 
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script>
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.innerText = "👁️";
+            } else {
+                input.type = "password";
+                btn.innerText = "👁️ /";
+            }
+        }
+
         function registrarUsuario(e) {
             e.preventDefault();
             const user = document.getElementById('reg-user').value.trim();
@@ -155,7 +181,6 @@
                 return;
             }
 
-            // Registrar nuevo usuario
             users[user] = {
                 password: pass,
                 puntos: 0,
