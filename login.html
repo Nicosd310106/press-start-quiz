@@ -111,11 +111,11 @@
                 <button type="submit" class="btn-submit">🚀 INICIAR SESIÓN Y JUGAR</button>
             </form>
 
-            <a href="index.html" class="link-alt">← ¿No tienes cuenta aún? Crea una aquí</a>
+            <a href="registro.html" class="link-alt">← ¿No tienes cuenta aún? Crea una aquí</a>
         </div>
     </div>
 
-    <script src="sonidos.js"></script>
+    <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const tempUser = localStorage.getItem('temp_registered_user');
@@ -134,7 +134,7 @@
             const users = JSON.parse(localStorage.getItem('press_start_usuarios_db') || '{}');
 
             if (!users[user] || users[user].password !== pass) {
-                if (typeof Sonidos !== 'undefined') Sonidos.playError();
+                if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
                 alertBox.innerText = "❌ Usuario o contraseña incorrectos.";
                 alertBox.className = "alert-msg alert-error";
                 alertBox.style.display = "block";
@@ -143,13 +143,12 @@
 
             localStorage.setItem('press_start_usuario_actual', user);
 
-            if (typeof Sonidos !== 'undefined') Sonidos.playPowerUp();
+            if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
 
             alertBox.innerText = "🎮 ¡Sesión iniciada correctamente! Entrando al juego...";
             alertBox.className = "alert-msg alert-success";
             alertBox.style.display = "block";
 
-            // Redirige al juego
             setTimeout(() => {
                 window.location.href = "index.html";
             }, 1000);
