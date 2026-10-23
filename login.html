@@ -60,11 +60,31 @@
             right: 8px;
             background: transparent;
             border: none;
-            color: #00feff;
-            font-size: 1.1rem;
             cursor: pointer;
             padding: 4px;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+        .eye-container {
+            position: relative;
+            display: inline-block;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+        .slash-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0055;
+            font-weight: bold;
+            font-size: 1.3rem;
+            pointer-events: none;
+            text-shadow: 0 0 3px #000;
         }
         .btn-submit {
             width: 100%;
@@ -125,7 +145,9 @@
                     <label for="login-pass">CONTRASEÑA:</label>
                     <div class="input-password-wrapper">
                         <input type="password" id="login-pass" required placeholder="Tu contraseña">
-                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-pass', this)" title="Mostrar/Ocultar contraseña">👁️ /</button>
+                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-pass', this)" title="Mostrar/Ocultar contraseña">
+                            <span class="eye-container">👁️<span class="slash-icon">/</span></span>
+                        </button>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">🚀 INICIAR SESIÓN Y JUGAR</button>
@@ -150,10 +172,10 @@
             if (!input) return;
             if (input.type === "password") {
                 input.type = "text";
-                btn.innerText = "👁️";
+                btn.innerHTML = '<span class="eye-container">👁️</span>';
             } else {
                 input.type = "password";
-                btn.innerText = "👁️ /";
+                btn.innerHTML = '<span class="eye-container">👁️<span class="slash-icon">/</span></span>';
             }
         }
 
