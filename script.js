@@ -11,64 +11,74 @@ let escudoActivo = false;
 
 // Verificación de sesión e inicialización cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
-    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+    try {
+        const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
-    // Si no ha iniciado sesión, redirige a login.html
-    if (!usuarioActual) {
-        window.location.href = "login.html";
-        return;
-    }
+        // Si no ha iniciado sesión, redirige a login.html
+        if (!usuarioActual) {
+            window.location.href = "login.html";
+            return;
+        }
 
-    console.log("Sesión activa para el jugador:", usuarioActual);
+        console.log("Sesión activa para el jugador:", usuarioActual);
 
-    // Asignar eventos de géneros
-    document.querySelectorAll(".btn-genre").forEach(btn => {
-        btn.addEventListener("click", () => {
-            selectedGenre = btn.getAttribute("data-genre");
-            const labelEl = document.getElementById("selected-genre-label");
-            if (labelEl) labelEl.innerText = selectedGenre;
-            
-            const genreSel = document.getElementById("genre-selection");
-            const diffSel = document.getElementById("difficulty-selection");
-            if (genreSel) genreSel.style.display = "none";
-            if (diffSel) diffSel.style.display = "block";
+        // Asignar eventos de géneros
+        document.querySelectorAll(".btn-genre").forEach(btn => {
+            btn.addEventListener("click", () => {
+                selectedGenre = btn.getAttribute("data-genre");
+                const labelEl = document.getElementById("selected-genre-label");
+                if (labelEl) labelEl.innerText = selectedGenre;
+                
+                const genreSel = document.getElementById("genre-selection");
+                const diffSel = document.getElementById("difficulty-selection");
+                if (genreSel) genreSel.style.display = "none";
+                if (diffSel) diffSel.style.display = "block";
+            });
         });
-    });
 
-    // Volver a selección de género
-    const btnBackGenre = document.getElementById("btn-back-genre");
-    if (btnBackGenre) {
-        btnBackGenre.addEventListener("click", () => {
-            const genreSel = document.getElementById("genre-selection");
-            const diffSel = document.getElementById("difficulty-selection");
-            if (diffSel) diffSel.style.display = "none";
-            if (genreSel) genreSel.style.display = "block";
+        // Volver a selección de género
+        const btnBackGenre = document.getElementById("btn-back-genre");
+        if (btnBackGenre) {
+            btnBackGenre.addEventListener("click", () => {
+                const genreSel = document.getElementById("genre-selection");
+                const diffSel = document.getElementById("difficulty-selection");
+                if (diffSel) diffSel.style.display = "none";
+                if (genreSel) genreSel.style.display = "block";
+            });
+        }
+
+        // Botones de dificultad
+        document.querySelectorAll(".btn-difficulty").forEach(btn => {
+            btn.addEventListener("click", () => {
+                selectedLevel = btn.getAttribute("data-level");
+                nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
+                iniciarQuiz(selectedGenre, selectedLevel);
+            });
         });
+
+        // Llamada segura a la tienda
+        if (typeof actualizarPantallaTienda === "function") {
+            actualizarPantallaTienda();
+        }
+
+        // Cargar la tabla de posiciones desde MySQL o fallback
+        cargarRanking();
+
+    } catch (e) {
+        console.error("Error durante el arranque de la app:", e);
     }
-
-    // Botones de dificultad
-    document.querySelectorAll(".btn-difficulty").forEach(btn => {
-        btn.addEventListener("click", () => {
-            selectedLevel = btn.getAttribute("data-level");
-            nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
-            iniciarQuiz(selectedGenre, selectedLevel);
-        });
-    });
-
-    if (typeof actualizarPantallaTienda === "function") {
-        actualizarPantallaTienda();
-    }
-
-    // Cargar la tabla de posiciones desde MySQL
-    cargarRanking();
 });
 
 // Reproducir sonido de clic global
 document.addEventListener("click", (e) => {
-    if (e.target.tagName === "BUTTON" || e.target.closest("button")) {
-        if (typeof Sonidos !== 'undefined' && typeof Sonidos.playClic === 'function') {
-            Sonidos.playClic();
+    try {
+        if (e.target.tagName === "BUTTON" || e.target.closest("button")) {
+            if (typeof Sonidos !== 'undefined' && typeof Sonidos.playClic === 'function') {
+                Sonidos.playClic();
+            }
         }
+    } catch (err) {
+        // Ignorar si el audio falla
     }
 });
 
@@ -92,7 +102,7 @@ async function cargarRanking() {
             listaEl.innerHTML = "<li>No hay puntajes registrados aún.</li>";
         }
     } catch (error) {
-        listaEl.innerHTML = "<li>Conecta MySQL para ver las posiciones.</li>";
+        listaEl.innerHTML = "<li>Modo local o MySQL offline. ¡Inicia una partida!</li>";
     }
 }
 
@@ -108,7 +118,7 @@ async function fetchPreguntasServerless(genre, level, count = 10, exclude = []) 
     try {
         data = JSON.parse(texto);
     } catch {
-        throw new Error(`El servidor respondió ${response.status}: ${texto.slice(0, 150)}`);
+        throw new Error(`El servidor respondió con un error (${response.status})`);
     }
 
     if (!response.ok) {
@@ -230,7 +240,6 @@ function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    // Recargar el ranking al volver al menú
     cargarRanking();
 }
 
