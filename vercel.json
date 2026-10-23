@@ -1,5 +1,12 @@
 {
   "functions": {
     "api/generar.js": { "maxDuration": 60 }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/login.html",
+      "permanent": false
+    }
+  ]
 }
