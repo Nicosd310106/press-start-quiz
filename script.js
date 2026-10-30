@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
         const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
-        // Si no ha iniciado sesión, redirige a login.html
         if (!usuarioActual) {
             window.location.href = "login.html";
             return;
@@ -56,12 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Llamada segura a la tienda
         if (typeof actualizarPantallaTienda === "function") {
             actualizarPantallaTienda();
         }
 
-        // Cargar la tabla de posiciones desde MySQL o fallback
         cargarRanking();
 
     } catch (e) {
@@ -133,7 +130,6 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 }
 
 async function fetchPreguntasBD(genre, level) {
-    // Convertir nombres de género a IDs correspondientes en la BD
     const mapaCategorias = {
         "Survival Horror": 1,
         "RPG": 2,
@@ -146,7 +142,6 @@ async function fetchPreguntasBD(genre, level) {
     const categoriaId = mapaCategorias[genre] || 1;
     const dificultadNormalizada = (level || "Fácil").toLowerCase().replace("á", "a").replace("í", "i");
 
-    // Intento 1: Traer preguntas de MySQL Aiven
     try {
         const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
         if (response.ok) {
@@ -157,21 +152,6 @@ async function fetchPreguntasBD(genre, level) {
         }
     } catch (err) {
         console.warn("Fallo endpoint /api/preguntas, probando fallback...");
-    }
-
-    // Intento 2: Fallback al endpoint /api/generar si existiera
-    try {
-        const response = await fetch("/api/generar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ genre, level, count: 10 })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data) && data.length > 0) return data;
-        }
-    } catch (err) {
-        console.warn("Fallback /api/generar falló.");
     }
 
     throw new Error("No se encontraron preguntas cargadas para esta categoría.");
@@ -227,7 +207,6 @@ function loadQuestion() {
     const qEl = document.getElementById("question");
     const container = document.getElementById("options-container");
     
-    // Soportar tanto formato MySQL (q.enunciado / q.opciones) como formato IA (q.q / q.options)
     const enunciado = q.enunciado || q.q;
     const opciones = q.opciones || q.options;
 
@@ -236,7 +215,6 @@ function loadQuestion() {
         container.innerHTML = "";
         opciones.forEach((opt, i) => {
             const btn = document.createElement("button");
-            // Si la opción es objeto {texto_opcion, es_correcta} o string directo
             const textoOpt = typeof opt === 'object' ? opt.texto_opcion : opt;
             btn.innerText = textoOpt;
             btn.className = "btn-option";
@@ -251,7 +229,6 @@ function checkAnswer(index, q) {
     const opciones = q.opciones || q.options;
     const optSeleccionada = opciones[index];
 
-    // Verificar si es correcta según el formato de la BD o del array simple
     let esCorrecta = false;
     if (typeof optSeleccionada === 'object') {
         esCorrecta = (optSeleccionada.es_correcta === 1 || optSeleccionada.es_correcta === true);
@@ -261,14 +238,13 @@ function checkAnswer(index, q) {
 
     if (esCorrecta) {
         score += (10 * multiplicadorPuntos);
-        multiplicadorPuntos = 1; // Reiniciar multiplicador temporal
+        multiplicadorPuntos = 1;
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            // Guardar puntos ganados en MySQL
             guardarPuntosEnBD(score);
             const quizArea = document.getElementById("quiz");
             if (quizArea) {
@@ -285,7 +261,6 @@ function checkAnswer(index, q) {
             alert("🛡️ ¡El escudo absorbió el error!");
             return;
         }
-        // Guardar puntos ganados en MySQL antes de mostrar Game Over
         guardarPuntosEnBD(score);
         const quizArea = document.getElementById("quiz");
         const gameOverScreen = document.getElementById("game-over-screen");
@@ -307,7 +282,6 @@ function volverAlMenu() {
     const genreSelection = document.getElementById("genre-selection");
     const quizArea = document.getElementById("quiz");
 
-    // Restaurar estructura original del área de juego
     if (quizArea) {
         quizArea.style.display = "block";
         quizArea.innerHTML = `
