@@ -106,6 +106,32 @@ async function cargarRanking() {
     }
 }
 
+async function guardarPuntosEnBD(puntajeObtenido) {
+    const userId = localStorage.getItem('press_start_user_id');
+    if (!userId || puntajeObtenido <= 0) return;
+
+    try {
+        const res = await fetch('/api/partidas/guardar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: parseInt(userId),
+                dificultad: selectedLevel || 'Fácil',
+                puntajeObtenido: puntajeObtenido
+            })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            console.log("Puntos acumulados guardados en MySQL:", data.puntosTotales);
+            const tiendaPts = document.getElementById("tienda-puntos-menu");
+            if (tiendaPts) tiendaPts.innerText = data.puntosTotales;
+        }
+    } catch (error) {
+        console.error("Error al registrar puntos en MySQL:", error);
+    }
+}
+
 async function fetchPreguntasServerless(genre, level, count = 10, exclude = []) {
     const response = await fetch("/api/generar", {
         method: "POST",
@@ -199,13 +225,16 @@ function loadQuestion() {
 
 function checkAnswer(index, q) {
     if (index === q.correct) {
-        score += 10;
+        score += (10 * multiplicadorPuntos);
+        multiplicadorPuntos = 1; // Reiniciar multiplicador temporal
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
+            // Guardar puntos ganados en MySQL
+            guardarPuntosEnBD(score);
             const quizArea = document.getElementById("quiz");
             if (quizArea) {
                 quizArea.innerHTML = `
@@ -216,6 +245,13 @@ function checkAnswer(index, q) {
             }
         }
     } else {
+        if (escudoActivo) {
+            escudoActivo = false;
+            alert("🛡️ ¡El escudo absorbió el error!");
+            return;
+        }
+        // Guardar puntos ganados en MySQL antes de mostrar Game Over
+        guardarPuntosEnBD(score);
         const quizArea = document.getElementById("quiz");
         const gameOverScreen = document.getElementById("game-over-screen");
         if (quizArea) quizArea.style.display = "none";
@@ -245,5 +281,6 @@ function volverAlMenu() {
 
 function cerrarSesion() {
     localStorage.removeItem("press_start_usuario_actual");
+    localStorage.removeItem("press_start_user_id");
     window.location.href = "login.html";
 }
