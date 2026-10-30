@@ -7,34 +7,41 @@ export default async function handler(req, res) {
 
     const { nickname, password } = req.body;
 
+    if (!nickname || !password) {
+        return res.status(400).json({ error: 'Debes ingresar usuario y contraseña' });
+    }
+
     try {
+        // Buscar el usuario en la base de datos de Aiven
         const [rows] = await dbPool.execute(
             'SELECT id, nickname, password_hash, puntos_totales FROM usuarios WHERE nickname = ?',
             [nickname]
         );
 
-        if (rows.length === 0 || rows[0].password_hash !== password) {
-            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+        if (rows.length === 0) {
+            return res.status(401).json({ error: 'El usuario no existe' });
         }
 
         const usuario = rows[0];
 
-        // Obtener el inventario del usuario
-        const [inventario] = await dbPool.execute(
-            'SELECT cant_mitad, cant_escudo, cant_saltar, cant_doble FROM inventarios WHERE usuario_id = ?',
-            [usuario.id]
-        );
+        // Verificar la contraseña
+        if (usuario.password_hash !== password) {
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
 
+        // Devolver datos del usuario al frontend
         return res.status(200).json({
             mensaje: 'Inicio de sesión exitoso',
-            usuario: {
-                id: usuario.id,
-                nickname: usuario.nickname,
-                puntos: usuario.puntos_totales,
-                inventario: inventario[0] || { cant_mitad: 0, cant_escudo: 0, cant_saltar: 0, cant_doble: 0 }
-            }
+            userId: usuario.id,
+            nickname: usuario.nickname,
+            puntosTotales: usuario.puntos_totales
         });
+
     } catch (error) {
-        return res.status(500).json({ error: 'Error en el servidor al iniciar sesión', detalle: error.message });
+        console.error("Error en /api/login:", error);
+        return res.status(500).json({
+            error: 'Error al conectar con la base de datos',
+            detalle: error.message
+        });
     }
 }
