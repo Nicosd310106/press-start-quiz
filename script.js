@@ -132,30 +132,49 @@ async function guardarPuntosEnBD(puntajeObtenido) {
     }
 }
 
-async function fetchPreguntasServerless(genre, level, count = 10, exclude = []) {
-    const response = await fetch("/api/generar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ genre, level, count, exclude })
-    });
+async function fetchPreguntasBD(genre, level) {
+    // Convertir nombres de género a IDs correspondientes en la BD
+    const mapaCategorias = {
+        "Survival Horror": 1,
+        "RPG": 2,
+        "Acción y Aventura": 3,
+        "Shooter / Disparos": 4,
+        "Lucha / Peleas": 5,
+        "Plataformas": 6
+    };
 
-    const texto = await response.text();
-    let data;
+    const categoriaId = mapaCategorias[genre] || 1;
+    const dificultadNormalizada = (level || "Fácil").toLowerCase().replace("á", "a").replace("í", "i");
+
+    // Intento 1: Traer preguntas de MySQL Aiven
     try {
-        data = JSON.parse(texto);
-    } catch {
-        throw new Error(`El servidor respondió con un error (${response.status})`);
+        const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data.preguntas) && data.preguntas.length > 0) {
+                return data.preguntas;
+            }
+        }
+    } catch (err) {
+        console.warn("Fallo endpoint /api/preguntas, probando fallback...");
     }
 
-    if (!response.ok) {
-        throw new Error(data.detalle || data.error || "Error en el servidor");
+    // Intento 2: Fallback al endpoint /api/generar si existiera
+    try {
+        const response = await fetch("/api/generar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ genre, level, count: 10 })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) return data;
+        }
+    } catch (err) {
+        console.warn("Fallback /api/generar falló.");
     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-        throw new Error("El formato de preguntas recibido no es válido.");
-    }
-
-    return data;
+    throw new Error("No se encontraron preguntas cargadas para esta categoría.");
 }
 
 async function iniciarQuiz(genre, level) {
@@ -169,8 +188,6 @@ async function iniciarQuiz(genre, level) {
     if (scoreDisp) scoreDisp.innerText = "Puntos: 0";
     if (diffBadge) diffBadge.innerText = nivelActualLabel;
 
-    const isInfinite = (level === "Infinito");
-
     const menuEl = document.getElementById("menu");
     const gameEl = document.getElementById("game");
     const quizArea = document.getElementById("quiz");
@@ -183,13 +200,13 @@ async function iniciarQuiz(genre, level) {
 
     const qEl = document.getElementById("question");
     const optContainer = document.getElementById("options-container");
-    if (qEl) qEl.innerText = "Generando preguntas con IA...";
+    if (qEl) qEl.innerText = "Cargando preguntas de la BD...";
     if (optContainer) {
-        optContainer.innerHTML = `<p style="text-align: center; color: #00feff; font-size: 1.1rem;">Conectando con el servidor arcade... 🎮</p>`;
+        optContainer.innerHTML = `<p style="text-align: center; color: #00feff; font-size: 1.1rem;">Conectando con la base de datos... 🎮</p>`;
     }
 
     try {
-        bancoMezclado = await fetchPreguntasServerless(genre, level, isInfinite ? 5 : 10);
+        bancoMezclado = await fetchPreguntasBD(genre, level);
         loadQuestion();
     } catch (error) {
         console.error("Error al iniciar el Quiz:", error);
@@ -209,12 +226,19 @@ function loadQuestion() {
 
     const qEl = document.getElementById("question");
     const container = document.getElementById("options-container");
-    if (qEl) qEl.innerText = q.q;
+    
+    // Soportar tanto formato MySQL (q.enunciado / q.opciones) como formato IA (q.q / q.options)
+    const enunciado = q.enunciado || q.q;
+    const opciones = q.opciones || q.options;
+
+    if (qEl) qEl.innerText = enunciado;
     if (container) {
         container.innerHTML = "";
-        q.options.forEach((opt, i) => {
+        opciones.forEach((opt, i) => {
             const btn = document.createElement("button");
-            btn.innerText = opt;
+            // Si la opción es objeto {texto_opcion, es_correcta} o string directo
+            const textoOpt = typeof opt === 'object' ? opt.texto_opcion : opt;
+            btn.innerText = textoOpt;
             btn.className = "btn-option";
             btn.dataset.index = i;
             btn.onclick = () => checkAnswer(i, q);
@@ -224,7 +248,18 @@ function loadQuestion() {
 }
 
 function checkAnswer(index, q) {
-    if (index === q.correct) {
+    const opciones = q.opciones || q.options;
+    const optSeleccionada = opciones[index];
+
+    // Verificar si es correcta según el formato de la BD o del array simple
+    let esCorrecta = false;
+    if (typeof optSeleccionada === 'object') {
+        esCorrecta = (optSeleccionada.es_correcta === 1 || optSeleccionada.es_correcta === true);
+    } else {
+        esCorrecta = (index === q.correct);
+    }
+
+    if (esCorrecta) {
         score += (10 * multiplicadorPuntos);
         multiplicadorPuntos = 1; // Reiniciar multiplicador temporal
         const scoreDisp = document.getElementById("score-display");
@@ -270,6 +305,17 @@ function volverAlMenu() {
     const gameOverScreen = document.getElementById("game-over-screen");
     const menuEl = document.getElementById("menu");
     const genreSelection = document.getElementById("genre-selection");
+    const quizArea = document.getElementById("quiz");
+
+    // Restaurar estructura original del área de juego
+    if (quizArea) {
+        quizArea.style.display = "block";
+        quizArea.innerHTML = `
+            <div id="difficulty-badge" class="badge"></div>
+            <h2 id="question">Cargando...</h2>
+            <div id="options-container" class="options-grid"></div>
+        `;
+    }
 
     if (gameEl) gameEl.style.display = "none";
     if (gameOverScreen) gameOverScreen.style.display = "none";
