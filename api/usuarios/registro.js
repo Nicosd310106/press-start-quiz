@@ -12,9 +12,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. Insertar el nuevo usuario en la base de datos
+        // 1. Insertar el nuevo usuario en la base de datos de Aiven
         const [result] = await dbPool.execute(
-            'INSERT INTO usuarios (nickname, password_hash) VALUES (?, ?)',
+            'INSERT INTO usuarios (nickname, password_hash, puntos_totales) VALUES (?, ?, 0)',
             [nickname, password]
         );
 
@@ -26,11 +26,19 @@ export default async function handler(req, res) {
             [newUserId]
         );
 
-        return res.status(201).json({ mensaje: '¡Usuario registrado exitosamente!', userId: newUserId });
+        return res.status(201).json({
+            mensaje: '¡Usuario registrado exitosamente!',
+            userId: newUserId,
+            nickname: nickname
+        });
     } catch (error) {
+        console.error("Error en /api/registro:", error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ error: 'El nombre de usuario ya existe' });
         }
-        return res.status(500).json({ error: 'Error en el servidor al registrar usuario', detalle: error.message });
+        return res.status(500).json({
+            error: 'Error en el servidor al registrar usuario',
+            detalle: error.message
+        });
     }
 }
