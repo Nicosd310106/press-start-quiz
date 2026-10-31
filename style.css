@@ -1,9 +1,13 @@
 /* ==========================================
-   PRESS START QUIZ - ESTILO NEÓN ARCADE COMPACTO
+   PRESS START QUIZ - ESTILO NEÓN ARCADE COMPACTO (FIX SCROLL)
    ========================================== */
 
+* {
+    box-sizing: border-box;
+}
+
 body {
-    background-color: #000000; /* Fondo negro puro */
+    background-color: #000000;
     color: #00feff;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
@@ -11,22 +15,27 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    padding: 15px;
+    padding: 10px;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .game-container {
     background: #050508; 
-    padding: 1.2rem 1.5rem; /* Relleno ajustado */
-    border: 3px solid #ff0055; /* Borde principal fucsia vibrante */
+    padding: 1rem 1.2rem;
+    border: 3px solid #ff0055;
     border-radius: 15px;
-    /* Doble brillo neón envolvente (Cian y Fucsia) */
     box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.2); 
     width: 100%;
-    max-width: 420px; /* Tamaño compacto simulación mobile/arcade en PC */
+    max-width: 440px;
+    max-height: 92vh; /* Evita que la tarjeta sobrepase la pantalla verticalmente */
     text-align: center;
     box-sizing: border-box;
-    margin: 0 auto;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto; /* Permite scroll interno suave solo si la pantalla es muy pequeña */
 }
 
 /* --- ESTILOS PARA EL LOGO --- */
@@ -35,39 +44,38 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 header h1 {
-    font-size: 1.3rem;
-    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    margin: 0 0 4px 0;
 }
 
 .logo-img {
-    max-width: 120px; /* Tamaño reducido para no estirar la pantalla */
+    max-width: 90px; /* Tamaño reducido para compactar el alto */
     height: auto;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     filter: drop-shadow(0 0 10px rgba(0, 254, 255, 0.4));
 }
 
 .menu-subtitle {
-    font-size: 0.85rem;
-    margin-bottom: 10px;
+    font-size: 0.78rem;
+    margin-bottom: 8px;
 }
 
-/* --- MENÚ Y SCROLLBAR ACOTA --- */
+/* --- MENÚ Y SCROLLBAR ACOTADO --- */
 .menu-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: 250px; /* Scroll limitado para que entre en cualquier pantalla */
+    gap: 6px;
+    max-height: 210px; /* Ajuste para encajar los 6 botones holgadamente */
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 4px;
 }
 
-/* Personalización del Scrollbar Neón */
 .menu-options::-webkit-scrollbar {
     width: 5px;
 }
@@ -84,16 +92,16 @@ header h1 {
     background: rgba(255, 0, 85, 0.05);
     border: 2px solid #ff0055; 
     color: #ffffff;
-    padding: 8px 12px; /* Botones más compactos */
+    padding: 7px 10px;
     cursor: pointer;
     font-family: inherit;
     border-radius: 8px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
     box-sizing: border-box;
 }
@@ -101,12 +109,11 @@ header h1 {
 .btn-genre:hover, .btn-difficulty:hover {
     background: #ff0055;
     color: #000000;
-    transform: scale(1.02);
+    transform: scale(1.01);
     box-shadow: 0 0 15px #ff0055, 0 0 25px #ff0055;
     font-weight: bold;
 }
 
-/* Botón de dificultad "Todas" */
 .btn-todas { 
     border-color: #ffe600 !important; 
     color: #ffe600 !important; 
@@ -118,13 +125,12 @@ header h1 {
     box-shadow: 0 0 15px #ffe600, 0 0 25px #ffe600 !important; 
 }
 
-/* Botón Modo Infinito */
 .btn-infinite {
     border-color: #ffe600 !important;
 }
 
 .diff-icon {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 
 .diff-label {
@@ -132,7 +138,7 @@ header h1 {
 }
 
 .diff-desc {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #a0a0c0;
     margin-left: auto;
 }
@@ -142,14 +148,14 @@ header h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    font-size: 0.8rem;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
 }
 
 #difficulty-badge {
     background: #ff0055;
     color: white;
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 5px;
     font-weight: bold;
     box-shadow: 0 0 8px #ff0055;
@@ -160,15 +166,15 @@ header h1 {
     display: flex;
     justify-content: space-between;
     gap: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .btn-powerup {
     background: rgba(0, 254, 255, 0.05);
     border: 1px solid #00feff;
     color: #00feff;
-    padding: 5px 6px;
-    font-size: 0.7rem;
+    padding: 4px 5px;
+    font-size: 0.65rem;
     border-radius: 4px;
     cursor: pointer;
     flex: 1;
@@ -184,20 +190,20 @@ header h1 {
 
 /* --- PREGUNTAS Y OPCIONES --- */
 #quiz h2 {
-    font-size: 0.9rem;
-    line-height: 1.3;
-    margin-bottom: 10px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    margin-bottom: 8px;
 }
 
 .btn-option {
     background: rgba(0, 254, 255, 0.05);
     border: 2px solid #00feff;
     color: #00feff;
-    padding: 10px;
+    padding: 8px 10px;
     width: 100%;
-    margin: 6px 0;
+    margin: 5px 0;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     border-radius: 8px;
     transition: 0.3s;
     font-family: inherit;
@@ -210,7 +216,6 @@ header h1 {
     background: #00feff;
     color: #000000;
     box-shadow: 0 0 15px #00feff;
-    transform: scale(1.01);
 }
 
 .btn-option.correct {
@@ -232,39 +237,35 @@ header h1 {
     background-color: rgba(10, 5, 8, 0.95);
     border: 3px solid #ff003c;
     box-shadow: 0 0 20px #ff003c, inset 0 0 15px rgba(255, 0, 60, 0.4);
-    padding: 20px;
+    padding: 15px;
     border-radius: 15px;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 #game-over-screen h2 {
     color: #ff003c;
     text-shadow: 2px 2px 0px #00feff, -2px -2px 0px #ffe600;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     letter-spacing: 2px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .btn-retry {
     background: transparent;
     color: #fff;
     border: 2px solid #fff;
-    padding: 10px 20px;
+    padding: 8px 16px;
     cursor: pointer;
     border-radius: 8px;
     transition: 0.3s;
     font-family: inherit;
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 8px;
+    font-size: 0.75rem;
 }
 
 .btn-retry:hover {
     background: #fff;
     color: #000;
     box-shadow: 0 0 15px #fff;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
 }
