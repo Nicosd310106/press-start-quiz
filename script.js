@@ -92,7 +92,6 @@ async function guardarPuntosEnBD(puntajeObtenido) {
     if (!userId || puntajeObtenido <= 0) return;
 
     try {
-        // Corrección de la ruta a /api/partida
         const res = await fetch('/api/partida', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -104,8 +103,6 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 
         if (res.ok) {
             console.log("Puntos guardados con éxito en MySQL.");
-            
-            // Actualizar etiqueta de monedas/puntos en la interfaz
             const tiendaPts = document.getElementById("tienda-puntos-menu");
             if (tiendaPts) {
                 const puntosActuales = parseInt(tiendaPts.innerText || "0") + puntajeObtenido;
@@ -140,18 +137,37 @@ async function fetchPreguntasBD(genre, level) {
         .replace("á", "a")
         .replace("í", "i");
 
-    const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
-    
-    if (!response.ok) {
-        throw new Error("No se pudieron cargar las preguntas del servidor.");
+    // Intento 1: API de preguntas de MySQL
+    try {
+        const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data.preguntas) && data.preguntas.length > 0) {
+                return data.preguntas;
+            }
+        }
+    } catch (e) {
+        console.warn("API /api/preguntas no disponible, intentando alternativa...");
     }
 
-    const data = await response.json();
-    if (!Array.isArray(data.preguntas) || data.preguntas.length === 0) {
-        throw new Error(`No hay preguntas disponibles para ${genre} (${level}).`);
+    // Intento 2: Fallback API /api/generar
+    try {
+        const responseAlt = await fetch("/api/generar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ genre, level, count: 5 })
+        });
+        if (responseAlt.ok) {
+            const dataAlt = await responseAlt.json();
+            if (Array.isArray(dataAlt) && dataAlt.length > 0) {
+                return dataAlt;
+            }
+        }
+    } catch (e) {
+        console.warn("Fallback /api/generar tampoco respondió.");
     }
 
-    return data.preguntas;
+    throw new Error(`No se pudieron obtener preguntas para ${genre} (${level}). Revisa la conexión con MySQL Aiven.`);
 }
 
 async function iniciarQuiz(genre, level) {
@@ -175,7 +191,6 @@ async function iniciarQuiz(genre, level) {
     if (quizArea) quizArea.style.display = "block";
     if (gameOverScreen) gameOverScreen.style.display = "none";
 
-    // Reinstalar estructura limpia del área de preguntas
     quizArea.innerHTML = `
         <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
         <h2 id="question">Cargando preguntas de la BD...</h2>
@@ -283,7 +298,6 @@ function volverAlMenu() {
     const diffSelection = document.getElementById("difficulty-selection");
     const quizArea = document.getElementById("quiz");
 
-    // Limpiar pantalla del juego
     if (quizArea) {
         quizArea.style.display = "block";
         quizArea.innerHTML = "";
