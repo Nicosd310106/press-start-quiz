@@ -1,4 +1,7 @@
-/* RESET Y PROPIEDADES BASE */
+/* ==========================================
+   PRESS START QUIZ - ESTILO NEÓN ARCADE PROPORCIONAL
+   ========================================== */
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -7,9 +10,9 @@
 }
 
 html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden; /* Oculta la barra de scroll de la ventana principal */
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Elimina cualquier barra de scroll global */
 }
 
 body {
@@ -18,26 +21,26 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    padding: 12px;
 }
 
-/* CONTENEDOR PRINCIPAL - AMPLIADO EN ALTO Y ANCHO */
+/* CONTENEDOR PRINCIPAL BALANCEADO Y PROPORCIONAL */
 .game-container, .container, .card, #app-container {
     background: #050508;
     border: 3px solid #ff0055;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.15);
     width: 100%;
-    max-width: 480px; /* Tamaño un poco más amplio y vistoso */
-    max-height: 95vh;
-    padding: 16px 18px;
+    max-width: 520px; /* Tamaño arcade equilibrado en PC y mobile */
+    max-height: 90vh; /* No cubre toda la pantalla verticalmente */
+    padding: 16px 20px;
     text-align: center;
     margin: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
-    overflow: hidden; /* Elimina desbordamientos */
+    overflow: hidden;
 }
 
 /* HEADER Y LOGO */
@@ -45,11 +48,11 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .logo-img, img[alt*="Logo"], .logo {
-    max-width: 70px !important;
+    max-width: 75px !important;
     height: auto;
     margin-bottom: 4px;
     image-rendering: pixelated;
@@ -57,9 +60,9 @@ header {
 }
 
 header h1, h1 {
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: #00feff;
-    margin: 4px 0;
+    margin: 2px 0;
 }
 
 .menu-subtitle, p {
@@ -69,30 +72,29 @@ header h1, h1 {
     line-height: 1.3;
 }
 
-/* MENÚ DE BOTONES - SIN SCROLLBAR Y CON ESPACIO AMPLIO */
+/* MENÚ DE BOTONES - SIN SCROLLBARS */
 .menu-options {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: none !important; /* Elimina el límite de altura */
-    overflow: visible !important; /* Quita la barra de subir y bajar */
+    max-height: none !important;
+    overflow: visible !important;
     padding: 0;
 }
 
-/* OCULTAR BARRA DE SCROLL DE WEBKIT */
 .menu-options::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
 }
 
-/* BOTONES DE DIFICULTAD Y GÉNEROS */
-.btn-genre, .btn-difficulty, .btn-option, .btn-back {
+/* BOTONES ARCADE */
+button, .btn, .btn-genre, .btn-difficulty, .btn-option, .btn-back {
     background: rgba(255, 0, 85, 0.05);
     border: 2px solid #ff0055;
     color: #ffffff;
-    padding: 9px 12px;
-    margin: 2px 0;
-    font-size: 0.78rem;
+    padding: 10px 14px;
+    margin: 3px 0;
+    font-size: 0.8rem;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -104,7 +106,7 @@ header h1, h1 {
     box-sizing: border-box;
 }
 
-.btn-genre:hover, .btn-difficulty:hover, .btn-option:hover {
+button:hover, .btn-genre:hover, .btn-difficulty:hover, .btn-option:hover {
     background: #ff0055;
     color: #000000;
     transform: scale(1.01);
@@ -112,22 +114,35 @@ header h1, h1 {
     font-weight: bold;
 }
 
-/* HIGHLIGHT PARA MODO INFINITO */
-.btn-infinite, .btn-todas {
+/* BOTÓN AMARILLO DESTACADO */
+.btn-primary, button[type="submit"], #btn-login, .btn-yellow, .btn-infinite, .btn-todas {
     border-color: #ffe600 !important;
+    color: #ffe600;
 }
 
-.diff-desc {
-    font-size: 0.68rem;
-    color: #a0a0c0;
-    margin-left: auto;
+.btn-primary:hover, button[type="submit"]:hover, #btn-login:hover {
+    background: #ffe600 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px #ffe600;
+}
+
+/* PREGUNTAS Y OPCIONES */
+#quiz h2, #question {
+    font-size: 0.95rem;
+    line-height: 1.3;
+    margin: 10px 0;
+    color: #00feff;
 }
 
 /* ENLACES Y NAVEGACIÓN INFERIOR */
 a, .link-auth {
     color: #ff0055;
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     text-decoration: none;
     display: block;
     margin-top: 8px;
+}
+
+a:hover {
+    text-shadow: 0 0 5px #ff0055;
 }
