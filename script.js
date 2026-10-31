@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Sesión activa para:", usuarioActual);
 
+        // Cargar y refrescar los puntos del usuario desde la BD
+        obtenerPuntosUsuario();
+
         // Selección de género
         document.querySelectorAll(".btn-genre").forEach(btn => {
             btn.addEventListener("click", () => {
@@ -65,6 +68,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+async function obtenerPuntosUsuario() {
+    const userId = localStorage.getItem('press_start_user_id');
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+    if (!userId && !usuarioActual) return;
+
+    try {
+        const res = await fetch('/api/ranking');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.ranking && Array.isArray(data.ranking)) {
+                const usuario = data.ranking.find(u => u.id == userId || u.nickname === usuarioActual);
+                if (usuario) {
+                    refrescarUIConPuntos(usuario.puntos_totales);
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("No se pudieron cargar los puntos del usuario.");
+    }
+}
+
+function refrescarUIConPuntos(puntos) {
+    const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
+    if (tiendaPtsSpan) {
+        tiendaPtsSpan.innerText = puntos;
+    }
+
+    // Actualiza dinámicamente cualquier botón o cartel que diga "Tienda (...)"
+    document.querySelectorAll("button, a, div").forEach(el => {
+        if (el.innerText && el.innerText.includes("Tienda (")) {
+            el.innerText = `🛒 Tienda (${puntos} pts)`;
+        }
+    });
+}
+
 async function cargarRanking() {
     const listaEl = document.getElementById("ranking-lista");
     if (!listaEl) return;
@@ -103,11 +141,7 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 
         if (res.ok) {
             console.log("Puntos guardados con éxito en MySQL.");
-            const tiendaPts = document.getElementById("tienda-puntos-menu");
-            if (tiendaPts) {
-                const puntosActuales = parseInt(tiendaPts.innerText || "0") + puntajeObtenido;
-                tiendaPts.innerText = puntosActuales;
-            }
+            await obtenerPuntosUsuario();
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
@@ -137,7 +171,6 @@ async function fetchPreguntasBD(genre, level) {
         .replace("á", "a")
         .replace("í", "i");
 
-    // Intento 1: API de preguntas de MySQL
     try {
         const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
         if (response.ok) {
@@ -147,10 +180,9 @@ async function fetchPreguntasBD(genre, level) {
             }
         }
     } catch (e) {
-        console.warn("API /api/preguntas no disponible, intentando alternativa...");
+        console.warn("API /api/preguntas no disponible...");
     }
 
-    // Intento 2: Fallback API /api/generar
     try {
         const responseAlt = await fetch("/api/generar", {
             method: "POST",
@@ -164,10 +196,10 @@ async function fetchPreguntasBD(genre, level) {
             }
         }
     } catch (e) {
-        console.warn("Fallback /api/generar tampoco respondió.");
+        console.warn("Fallback /api/generar no respondió.");
     }
 
-    throw new Error(`No se pudieron obtener preguntas para ${genre} (${level}). Revisa la conexión con MySQL Aiven.`);
+    throw new Error(`No se pudieron obtener preguntas para ${genre} (${level}).`);
 }
 
 async function iniciarQuiz(genre, level) {
@@ -309,6 +341,7 @@ function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
+    obtenerPuntosUsuario();
     cargarRanking();
 }
 
