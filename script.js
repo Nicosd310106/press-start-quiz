@@ -5,24 +5,22 @@ let currentIndex = 0;
 let score = 0;
 let nivelActualLabel = "";
 
-// Modificadores activos por pregunta
+// Modificadores activos
 let multiplicadorPuntos = 1;
 let escudoActivo = false;
 
-// Verificación de sesión e inicialización cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
     try {
         const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
-        // Si no ha iniciado sesión, redirige a login.html
         if (!usuarioActual) {
             window.location.href = "login.html";
             return;
         }
 
-        console.log("Sesión activa para el jugador:", usuarioActual);
+        console.log("Sesión activa para:", usuarioActual);
 
-        // Asignar eventos de géneros
+        // Selección de género
         document.querySelectorAll(".btn-genre").forEach(btn => {
             btn.addEventListener("click", () => {
                 selectedGenre = btn.getAttribute("data-genre");
@@ -36,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Volver a selección de género
+        // Botón volver a géneros
         const btnBackGenre = document.getElementById("btn-back-genre");
         if (btnBackGenre) {
             btnBackGenre.addEventListener("click", () => {
@@ -47,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // Botones de dificultad
+        // Selección de dificultad
         document.querySelectorAll(".btn-difficulty").forEach(btn => {
             btn.addEventListener("click", () => {
                 selectedLevel = btn.getAttribute("data-level");
@@ -56,29 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Llamada segura a la tienda
         if (typeof actualizarPantallaTienda === "function") {
             actualizarPantallaTienda();
         }
 
-        // Cargar la tabla de posiciones desde MySQL o fallback
         cargarRanking();
 
     } catch (e) {
-        console.error("Error durante el arranque de la app:", e);
-    }
-});
-
-// Reproducir sonido de clic global
-document.addEventListener("click", (e) => {
-    try {
-        if (e.target.tagName === "BUTTON" || e.target.closest("button")) {
-            if (typeof Sonidos !== 'undefined' && typeof Sonidos.playClic === 'function') {
-                Sonidos.playClic();
-            }
-        }
-    } catch (err) {
-        // Ignorar si el audio falla
+        console.error("Error en arranque:", e);
     }
 });
 
@@ -98,11 +81,9 @@ async function cargarRanking() {
                 li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${jugador.puntos_totales} pts</span>`;
                 listaEl.appendChild(li);
             });
-        } else {
-            listaEl.innerHTML = "<li>No hay puntajes registrados aún.</li>";
         }
     } catch (error) {
-        listaEl.innerHTML = "<li>Modo local o MySQL offline. ¡Inicia una partida!</li>";
+        console.warn("No se pudo obtener el ranking.");
     }
 }
 
@@ -111,21 +92,25 @@ async function guardarPuntosEnBD(puntajeObtenido) {
     if (!userId || puntajeObtenido <= 0) return;
 
     try {
-        const res = await fetch('/api/partidas/guardar', {
+        // Corrección de la ruta a /api/partida
+        const res = await fetch('/api/partida', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: parseInt(userId),
-                dificultad: selectedLevel || 'Fácil',
-                puntajeObtenido: puntajeObtenido
+                puntosObtenidos: puntajeObtenido
             })
         });
 
-        const data = await res.json();
         if (res.ok) {
-            console.log("Puntos acumulados guardados en MySQL:", data.puntosTotales);
+            console.log("Puntos guardados con éxito en MySQL.");
+            
+            // Actualizar etiqueta de monedas/puntos en la interfaz
             const tiendaPts = document.getElementById("tienda-puntos-menu");
-            if (tiendaPts) tiendaPts.innerText = data.puntosTotales;
+            if (tiendaPts) {
+                const puntosActuales = parseInt(tiendaPts.innerText || "0") + puntajeObtenido;
+                tiendaPts.innerText = puntosActuales;
+            }
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
@@ -134,8 +119,7 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 
 async function fetchPreguntasBD(genre, level) {
     const genreLower = (genre || "").toLowerCase();
-
-    let categoriaId = 1; // Por defecto Survival Horror
+    let categoriaId = 1;
 
     if (genreLower.includes("survival") || genreLower.includes("horror")) {
         categoriaId = 1;
@@ -156,19 +140,18 @@ async function fetchPreguntasBD(genre, level) {
         .replace("á", "a")
         .replace("í", "i");
 
-    try {
-        const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data.preguntas) && data.preguntas.length > 0) {
-                return data.preguntas;
-            }
-        }
-    } catch (err) {
-        console.warn("Fallo endpoint /api/preguntas, buscando alternativa...");
+    const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
+    
+    if (!response.ok) {
+        throw new Error("No se pudieron cargar las preguntas del servidor.");
     }
 
-    throw new Error(`No se encontraron preguntas cargadas en la BD para ${genre} (${level}).`);
+    const data = await response.json();
+    if (!Array.isArray(data.preguntas) || data.preguntas.length === 0) {
+        throw new Error(`No hay preguntas disponibles para ${genre} (${level}).`);
+    }
+
+    return data.preguntas;
 }
 
 async function iniciarQuiz(genre, level) {
@@ -192,12 +175,14 @@ async function iniciarQuiz(genre, level) {
     if (quizArea) quizArea.style.display = "block";
     if (gameOverScreen) gameOverScreen.style.display = "none";
 
-    const qEl = document.getElementById("question");
-    const optContainer = document.getElementById("options-container");
-    if (qEl) qEl.innerText = "Cargando preguntas de la BD...";
-    if (optContainer) {
-        optContainer.innerHTML = `<p style="text-align: center; color: #00feff; font-size: 1.1rem;">Conectando con la base de datos... 🎮</p>`;
-    }
+    // Reinstalar estructura limpia del área de preguntas
+    quizArea.innerHTML = `
+        <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
+        <h2 id="question">Cargando preguntas de la BD...</h2>
+        <div id="options-container" class="options-grid">
+            <p style="text-align: center; color: #00feff; font-size: 1.1rem;">Conectando con la base de datos... 🎮</p>
+        </div>
+    `;
 
     try {
         bancoMezclado = await fetchPreguntasBD(genre, level);
@@ -206,7 +191,7 @@ async function iniciarQuiz(genre, level) {
         console.error("Error al iniciar el Quiz:", error);
         if (quizArea) {
             quizArea.innerHTML = `
-                <h2 style="color: #ff003c;">ERROR:</h2>
+                <h2 style="color: #ff003c;">ERROR</h2>
                 <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
                 <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
             `;
@@ -220,7 +205,7 @@ function loadQuestion() {
 
     const qEl = document.getElementById("question");
     const container = document.getElementById("options-container");
-    
+
     const enunciado = q.enunciado || q.q;
     const opciones = q.opciones || q.options;
 
@@ -255,24 +240,19 @@ function checkAnswer(index, q) {
         multiplicadorPuntos = 1;
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
-        
+
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            // Guardar puntos ganados en MySQL Aiven
             guardarPuntosEnBD(score);
-
-            // Ocultar área de juego sin destruir sus elementos internos (#question y #options-container)
             const quizArea = document.getElementById("quiz");
-            const gameOverScreen = document.getElementById("game-over-screen");
-            
-            if (quizArea) quizArea.style.display = "none";
-            if (gameOverScreen) {
-                gameOverScreen.style.display = "block";
-                // Usamos la pantalla de fin de juego para mostrar el puntaje final
-                const scoreOver = document.getElementById("score-over");
-                if (scoreOver) scoreOver.innerText = score;
+            if (quizArea) {
+                quizArea.innerHTML = `
+                    <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
+                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
+                    <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+                `;
             }
         }
     } else {
@@ -300,19 +280,18 @@ function volverAlMenu() {
     const gameOverScreen = document.getElementById("game-over-screen");
     const menuEl = document.getElementById("menu");
     const genreSelection = document.getElementById("genre-selection");
+    const diffSelection = document.getElementById("difficulty-selection");
     const quizArea = document.getElementById("quiz");
 
+    // Limpiar pantalla del juego
     if (quizArea) {
         quizArea.style.display = "block";
-        quizArea.innerHTML = `
-            <div id="difficulty-badge" class="badge"></div>
-            <h2 id="question">Cargando...</h2>
-            <div id="options-container" class="options-grid"></div>
-        `;
+        quizArea.innerHTML = "";
     }
 
     if (gameEl) gameEl.style.display = "none";
     if (gameOverScreen) gameOverScreen.style.display = "none";
+    if (diffSelection) diffSelection.style.display = "none";
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
