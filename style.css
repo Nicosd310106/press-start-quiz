@@ -9,7 +9,7 @@
 html, body {
     height: 100%;
     width: 100%;
-    overflow: hidden; /* Oculta definitivamente la barra de scroll externa */
+    overflow: hidden; /* Oculta la barra de scroll de la ventana principal */
 }
 
 body {
@@ -21,122 +21,113 @@ body {
     padding: 10px;
 }
 
-/* CONTENEDOR PRINCIPAL NEÓN ROSA COMPACTO */
+/* CONTENEDOR PRINCIPAL - AMPLIADO EN ALTO Y ANCHO */
 .game-container, .container, .card, #app-container {
     background: #050508;
     border: 3px solid #ff0055;
-    border-radius: 14px;
-    box-shadow: 0 0 15px rgba(255, 0, 85, 0.6), inset 0 0 10px rgba(0, 254, 255, 0.15);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.2);
     width: 100%;
-    max-width: 400px;
-    padding: 12px 14px;
+    max-width: 480px; /* Tamaño un poco más amplio y vistoso */
+    max-height: 95vh;
+    padding: 16px 18px;
     text-align: center;
     margin: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
+    overflow: hidden; /* Elimina desbordamientos */
 }
 
-/* HEADER Y LOGO REDUCIDOS */
+/* HEADER Y LOGO */
 header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .logo-img, img[alt*="Logo"], .logo {
-    max-width: 60px !important;
+    max-width: 70px !important;
     height: auto;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     image-rendering: pixelated;
-    filter: drop-shadow(0 0 6px rgba(0, 254, 255, 0.4));
+    filter: drop-shadow(0 0 8px rgba(0, 254, 255, 0.4));
 }
 
 header h1, h1 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: #00feff;
-    margin: 2px 0;
+    margin: 4px 0;
 }
 
 .menu-subtitle, p {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     color: #a0a0c0;
-    margin-bottom: 6px;
-    line-height: 1.2;
+    margin-bottom: 8px;
+    line-height: 1.3;
 }
 
-/* CAJA DE INPUTS */
-.input-group {
-    margin-bottom: 6px;
-    text-align: left;
-}
-
-label {
-    display: block;
-    font-size: 0.6rem;
-    color: #00feff;
-    margin-bottom: 3px;
-    text-transform: uppercase;
-}
-
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 6px 10px;
-    background: #000000;
-    border: 1.5px solid #00feff;
-    border-radius: 6px;
-    color: #ffffff;
-    font-size: 0.72rem;
-    outline: none;
-}
-
-/* BOTONES AMARILLOS Y DE NAVEGACIÓN */
-button, .btn, .btn-primary, button[type="submit"], #btn-login {
-    width: 100%;
-    padding: 7px 10px;
-    margin: 4px 0;
-    font-size: 0.72rem;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-primary, button[type="submit"], #btn-login, .btn-yellow {
-    background: #ffe600;
-    color: #000000;
-    font-weight: bold;
-    border: 2px solid #ffe600;
-}
-
-.btn-genre, .btn-difficulty, .btn-option {
-    background: rgba(255, 0, 85, 0.05);
-    border: 1.5px solid #ff0055;
-    color: #ffffff;
-    padding: 6px 8px;
-    margin: 3px 0;
-    font-size: 0.72rem;
-    border-radius: 6px;
-}
-
+/* MENÚ DE BOTONES - SIN SCROLLBAR Y CON ESPACIO AMPLIO */
 .menu-options {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    max-height: 180px;
-    overflow-y: auto;
+    gap: 8px;
+    max-height: none !important; /* Elimina el límite de altura */
+    overflow: visible !important; /* Quita la barra de subir y bajar */
+    padding: 0;
 }
 
-/* ENLACE INFERIOR VISIBLE */
-a, .link-auth, a[href*="registro"], a[href*="login"] {
+/* OCULTAR BARRA DE SCROLL DE WEBKIT */
+.menu-options::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+}
+
+/* BOTONES DE DIFICULTAD Y GÉNEROS */
+.btn-genre, .btn-difficulty, .btn-option, .btn-back {
+    background: rgba(255, 0, 85, 0.05);
+    border: 2px solid #ff0055;
+    color: #ffffff;
+    padding: 9px 12px;
+    margin: 2px 0;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
+    box-sizing: border-box;
+}
+
+.btn-genre:hover, .btn-difficulty:hover, .btn-option:hover {
+    background: #ff0055;
+    color: #000000;
+    transform: scale(1.01);
+    box-shadow: 0 0 15px #ff0055;
+    font-weight: bold;
+}
+
+/* HIGHLIGHT PARA MODO INFINITO */
+.btn-infinite, .btn-todas {
+    border-color: #ffe600 !important;
+}
+
+.diff-desc {
+    font-size: 0.68rem;
+    color: #a0a0c0;
+    margin-left: auto;
+}
+
+/* ENLACES Y NAVEGACIÓN INFERIOR */
+a, .link-auth {
     color: #ff0055;
-    font-size: 0.62rem;
+    font-size: 0.65rem;
     text-decoration: none;
     display: block;
-    margin-top: 6px;
-    margin-bottom: 2px;
-}
-
-a:hover {
-    text-shadow: 0 0 5px #ff0055;
+    margin-top: 8px;
 }
