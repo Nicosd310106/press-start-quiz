@@ -12,21 +12,21 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Buscar el usuario en la base de datos de Aiven
+        // Buscar el usuario en la base de datos de Aiven (sin importar mayúsculas/minúsculas ni espacios)
         const [rows] = await dbPool.execute(
-            'SELECT id, nickname, password_hash, puntos_totales FROM usuarios WHERE nickname = ?',
+            'SELECT id, nickname, password_hash, puntos_totales FROM usuarios WHERE LOWER(TRIM(nickname)) = LOWER(TRIM(?))',
             [nickname]
         );
 
         if (rows.length === 0) {
-            return res.status(401).json({ error: 'El usuario no existe' });
+            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
 
         const usuario = rows[0];
 
         // Verificar la contraseña
-        if (usuario.password_hash !== password) {
-            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        if (usuario.password_hash !== password.trim()) {
+            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
 
         // Devolver datos del usuario al frontend
