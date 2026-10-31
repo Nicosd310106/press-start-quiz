@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Sesión activa para:", usuarioActual);
 
-        // Cargar y refrescar los puntos del usuario desde la BD
+        // Cargar los puntos del usuario desde la BD al arrancar
         obtenerPuntosUsuario();
 
         // Selección de género
@@ -90,17 +90,17 @@ async function obtenerPuntosUsuario() {
 }
 
 function refrescarUIConPuntos(puntos) {
+    // Actualizar únicamente el span de los puntos sin destruir el HTML del menú
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = puntos;
     }
 
-    // Actualiza dinámicamente cualquier botón o cartel que diga "Tienda (...)"
-    document.querySelectorAll("button, a, div").forEach(el => {
-        if (el.innerText && el.innerText.includes("Tienda (")) {
-            el.innerText = `🛒 Tienda (${puntos} pts)`;
-        }
-    });
+    // Si el botón de la tienda tiene ID específico
+    const btnTienda = document.getElementById("btn-tienda") || document.querySelector(".btn-tienda");
+    if (btnTienda && !tiendaPtsSpan) {
+        btnTienda.innerHTML = `🛒 Tienda (<span id="tienda-puntos-menu">${puntos}</span> pts)`;
+    }
 }
 
 async function cargarRanking() {
