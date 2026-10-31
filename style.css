@@ -1,271 +1,142 @@
-/* ==========================================
-   PRESS START QUIZ - ESTILO NEÓN ARCADE COMPACTO (FIX SCROLL)
-   ========================================== */
-
+/* RESET Y PROPIEDADES BASE */
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Oculta definitivamente la barra de scroll externa */
 }
 
 body {
     background-color: #000000;
     color: #00feff;
-    font-family: 'Courier New', Courier, monospace;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
     padding: 10px;
-    box-sizing: border-box;
-    overflow-x: hidden;
 }
 
-.game-container {
-    background: #050508; 
-    padding: 1rem 1.2rem;
+/* CONTENEDOR PRINCIPAL NEÓN ROSA COMPACTO */
+.game-container, .container, .card, #app-container {
+    background: #050508;
     border: 3px solid #ff0055;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(0, 254, 255, 0.2); 
+    border-radius: 14px;
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.6), inset 0 0 10px rgba(0, 254, 255, 0.15);
     width: 100%;
-    max-width: 440px;
-    max-height: 92vh; /* Evita que la tarjeta sobrepase la pantalla verticalmente */
+    max-width: 400px;
+    padding: 12px 14px;
     text-align: center;
-    box-sizing: border-box;
     margin: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow-y: auto; /* Permite scroll interno suave solo si la pantalla es muy pequeña */
+    box-sizing: border-box;
 }
 
-/* --- ESTILOS PARA EL LOGO --- */
+/* HEADER Y LOGO REDUCIDOS */
 header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-header h1 {
-    font-size: 1.1rem;
-    margin: 0 0 4px 0;
-}
-
-.logo-img {
-    max-width: 90px; /* Tamaño reducido para compactar el alto */
+.logo-img, img[alt*="Logo"], .logo {
+    max-width: 60px !important;
     height: auto;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    filter: drop-shadow(0 0 10px rgba(0, 254, 255, 0.4));
+    filter: drop-shadow(0 0 6px rgba(0, 254, 255, 0.4));
 }
 
-.menu-subtitle {
-    font-size: 0.78rem;
-    margin-bottom: 8px;
+header h1, h1 {
+    font-size: 0.95rem;
+    color: #00feff;
+    margin: 2px 0;
 }
 
-/* --- MENÚ Y SCROLLBAR ACOTADO --- */
+.menu-subtitle, p {
+    font-size: 0.68rem;
+    color: #a0a0c0;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+/* CAJA DE INPUTS */
+.input-group {
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    font-size: 0.6rem;
+    color: #00feff;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 6px 10px;
+    background: #000000;
+    border: 1.5px solid #00feff;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.72rem;
+    outline: none;
+}
+
+/* BOTONES AMARILLOS Y DE NAVEGACIÓN */
+button, .btn, .btn-primary, button[type="submit"], #btn-login {
+    width: 100%;
+    padding: 7px 10px;
+    margin: 4px 0;
+    font-size: 0.72rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-primary, button[type="submit"], #btn-login, .btn-yellow {
+    background: #ffe600;
+    color: #000000;
+    font-weight: bold;
+    border: 2px solid #ffe600;
+}
+
+.btn-genre, .btn-difficulty, .btn-option {
+    background: rgba(255, 0, 85, 0.05);
+    border: 1.5px solid #ff0055;
+    color: #ffffff;
+    padding: 6px 8px;
+    margin: 3px 0;
+    font-size: 0.72rem;
+    border-radius: 6px;
+}
+
 .menu-options {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-height: 210px; /* Ajuste para encajar los 6 botones holgadamente */
+    gap: 4px;
+    max-height: 180px;
     overflow-y: auto;
-    padding-right: 4px;
 }
 
-.menu-options::-webkit-scrollbar {
-    width: 5px;
-}
-.menu-options::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.5);
-}
-.menu-options::-webkit-scrollbar-thumb {
-    background: #ff0055;
-    border-radius: 3px;
-}
-
-/* --- BOTONES DE GÉNERO Y DIFICULTAD --- */
-.btn-genre, .btn-difficulty {
-    background: rgba(255, 0, 85, 0.05);
-    border: 2px solid #ff0055; 
-    color: #ffffff;
-    padding: 7px 10px;
-    cursor: pointer;
-    font-family: inherit;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    font-size: 0.78rem;
-    box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
-    box-sizing: border-box;
+/* ENLACE INFERIOR VISIBLE */
+a, .link-auth, a[href*="registro"], a[href*="login"] {
+    color: #ff0055;
+    font-size: 0.62rem;
+    text-decoration: none;
+    display: block;
+    margin-top: 6px;
+    margin-bottom: 2px;
 }
 
-.btn-genre:hover, .btn-difficulty:hover {
-    background: #ff0055;
-    color: #000000;
-    transform: scale(1.01);
-    box-shadow: 0 0 15px #ff0055, 0 0 25px #ff0055;
-    font-weight: bold;
-}
-
-.btn-todas { 
-    border-color: #ffe600 !important; 
-    color: #ffe600 !important; 
-    box-shadow: 0 0 8px rgba(255, 230, 0, 0.3);
-}
-.btn-todas:hover { 
-    background: #ffe600 !important; 
-    color: #000000 !important; 
-    box-shadow: 0 0 15px #ffe600, 0 0 25px #ffe600 !important; 
-}
-
-.btn-infinite {
-    border-color: #ffe600 !important;
-}
-
-.diff-icon {
-    font-size: 0.85rem;
-}
-
-.diff-label {
-    font-weight: bold;
-}
-
-.diff-desc {
-    font-size: 0.65rem;
-    color: #a0a0c0;
-    margin-left: auto;
-}
-
-/* --- ESTADO / HUD DE JUEGO --- */
-#status {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 0.75rem;
-}
-
-#difficulty-badge {
-    background: #ff0055;
-    color: white;
-    padding: 3px 6px;
-    border-radius: 5px;
-    font-weight: bold;
-    box-shadow: 0 0 8px #ff0055;
-}
-
-/* --- HUD DE LA TIENDA DE AYUDAS --- */
-#shop-hud {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-    margin-bottom: 8px;
-}
-
-.btn-powerup {
-    background: rgba(0, 254, 255, 0.05);
-    border: 1px solid #00feff;
-    color: #00feff;
-    padding: 4px 5px;
-    font-size: 0.65rem;
-    border-radius: 4px;
-    cursor: pointer;
-    flex: 1;
-    font-family: inherit;
-    transition: 0.2s;
-}
-
-.btn-powerup:hover {
-    background: #00feff;
-    color: #000000;
-    box-shadow: 0 0 10px #00feff;
-}
-
-/* --- PREGUNTAS Y OPCIONES --- */
-#quiz h2 {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    margin-bottom: 8px;
-}
-
-.btn-option {
-    background: rgba(0, 254, 255, 0.05);
-    border: 2px solid #00feff;
-    color: #00feff;
-    padding: 8px 10px;
-    width: 100%;
-    margin: 5px 0;
-    cursor: pointer;
-    font-size: 0.78rem;
-    border-radius: 8px;
-    transition: 0.3s;
-    font-family: inherit;
-    font-weight: bold;
-    text-align: left;
-    box-sizing: border-box;
-}
-
-.btn-option:hover {
-    background: #00feff;
-    color: #000000;
-    box-shadow: 0 0 15px #00feff;
-}
-
-.btn-option.correct {
-    background: #00ff66 !important;
-    border-color: #00ff66 !important;
-    color: #000000 !important;
-    box-shadow: 0 0 15px #00ff66 !important;
-}
-
-.btn-option.wrong {
-    background: #ff0055 !important;
-    border-color: #ff0055 !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 15px #ff0055 !important;
-}
-
-/* --- PANTALLA GAME OVER --- */
-#game-over-screen {
-    background-color: rgba(10, 5, 8, 0.95);
-    border: 3px solid #ff003c;
-    box-shadow: 0 0 20px #ff003c, inset 0 0 15px rgba(255, 0, 60, 0.4);
-    padding: 15px;
-    border-radius: 15px;
-    margin-top: 8px;
-}
-
-#game-over-screen h2 {
-    color: #ff003c;
-    text-shadow: 2px 2px 0px #00feff, -2px -2px 0px #ffe600;
-    font-size: 1.4rem;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-}
-
-.btn-retry {
-    background: transparent;
-    color: #fff;
-    border: 2px solid #fff;
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: 0.3s;
-    font-family: inherit;
-    font-weight: bold;
-    margin-top: 8px;
-    font-size: 0.75rem;
-}
-
-.btn-retry:hover {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 0 15px #fff;
+a:hover {
+    text-shadow: 0 0 5px #ff0055;
 }
