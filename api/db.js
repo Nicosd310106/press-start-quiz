@@ -6,7 +6,7 @@ export const dbPool = mysql.createPool({
     user: process.env.DB_USER || process.env.MYSQL_USER || 'root',
     password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
     database: process.env.DB_NAME || process.env.MYSQL_DATABASE || 'press_start_quiz',
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : (process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 3306),
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : (process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 26207),
     ssl: { rejectUnauthorized: false }, // Requerido para Aiven en la nube
     waitForConnections: true,
     connectionLimit: 10,

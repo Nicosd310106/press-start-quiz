@@ -139,8 +139,6 @@
             <form onsubmit="iniciarSesion(event)">
                 <div class="form-group">
                     <label for="login-user">NOMBRE DE JUGADOR:</label>
-
-                    <!-- Atributos para prevenir mayúsculas/autocorrección móvil -->
                     <input type="text" id="login-user" required placeholder="Tu nickname" autocapitalize="none" autocorrect="off" spellcheck="false">
                 </div>
                 <div class="form-group">
@@ -188,8 +186,8 @@
             const alertBox = document.getElementById('alert-box');
 
             try {
-                // Petición real a la API Serverless conectada con Aiven
-                const response = await fetch('/api/login', {
+                // Ruta corregida a /api/usuarios/login
+                const response = await fetch('/api/usuarios/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nickname: user, password: pass })
