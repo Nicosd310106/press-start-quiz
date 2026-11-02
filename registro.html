@@ -196,8 +196,8 @@
             }
 
             try {
-                // Registrar usuario dinámicamente en MySQL Aiven
-                const response = await fetch('/api/registro', {
+                // Registrar usuario dinámicamente en MySQL Aiven mediante endpoint /api/usuarios/registro
+                const response = await fetch('/api/usuarios/registro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nickname: user, password: pass })
