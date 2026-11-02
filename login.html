@@ -139,12 +139,14 @@
             <form onsubmit="iniciarSesion(event)">
                 <div class="form-group">
                     <label for="login-user">NOMBRE DE JUGADOR:</label>
-                    <input type="text" id="login-user" required placeholder="Tu nickname">
+
+                    <!-- Atributos para prevenir mayúsculas/autocorrección móvil -->
+                    <input type="text" id="login-user" required placeholder="Tu nickname" autocapitalize="none" autocorrect="off" spellcheck="false">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">CONTRASEÑA:</label>
                     <div class="input-password-wrapper">
-                        <input type="password" id="login-pass" required placeholder="Tu contraseña">
+                        <input type="password" id="login-pass" required placeholder="Tu contraseña" autocapitalize="none" autocorrect="off" spellcheck="false">
                         <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-pass', this)" title="Mostrar/Ocultar contraseña">
                             <span class="eye-container">👁️<span class="slash-icon">/</span></span>
                         </button>
@@ -179,33 +181,48 @@
             }
         }
 
-        function iniciarSesion(e) {
+        async function iniciarSesion(e) {
             e.preventDefault();
             const user = document.getElementById('login-user').value.trim();
-            const pass = document.getElementById('login-pass').value;
+            const pass = document.getElementById('login-pass').value.trim();
             const alertBox = document.getElementById('alert-box');
 
-            const users = JSON.parse(localStorage.getItem('press_start_usuarios_db') || '{}');
+            try {
+                // Petición real a la API Serverless conectada con Aiven
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname: user, password: pass })
+                });
 
-            if (!users[user] || users[user].password !== pass) {
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('press_start_usuario_actual', data.nickname);
+                    localStorage.setItem('press_start_user_id', data.userId);
+
+                    if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
+
+                    alertBox.innerText = "🎮 ¡Sesión iniciada correctamente! Entrando al juego...";
+                    alertBox.className = "alert-msg alert-success";
+                    alertBox.style.display = "block";
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } else {
+                    if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
+                    alertBox.innerText = "❌ " + (data.error || "Usuario o contraseña incorrectos.");
+                    alertBox.className = "alert-msg alert-error";
+                    alertBox.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Error al iniciar sesión:", err);
                 if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
-                alertBox.innerText = "❌ Usuario o contraseña incorrectos.";
+                alertBox.innerText = "❌ Error al conectar con el servidor.";
                 alertBox.className = "alert-msg alert-error";
                 alertBox.style.display = "block";
-                return;
             }
-
-            localStorage.setItem('press_start_usuario_actual', user);
-
-            if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
-
-            alertBox.innerText = "🎮 ¡Sesión iniciada correctamente! Entrando al juego...";
-            alertBox.className = "alert-msg alert-success";
-            alertBox.style.display = "block";
-
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1000);
         }
     </script>
 </body>

@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
-    // Sanitización estricta de entrada (quita espacios accidentales)
+    // Sanitización estricta de entrada
     const nickClean = String(nickname).trim();
     const passClean = String(password).trim();
 
