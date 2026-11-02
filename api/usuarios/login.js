@@ -1,47 +1,229 @@
-import { dbPool } from '../db.js';
-
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
-
-    const { nickname, password } = req.body;
-
-    if (!nickname || !password) {
-        return res.status(400).json({ error: 'Debes ingresar usuario y contraseña' });
-    }
-
-    try {
-        // Buscar el usuario en la base de datos de Aiven (sin importar mayúsculas/minúsculas ni espacios)
-        const [rows] = await dbPool.execute(
-            'SELECT id, nickname, password_hash, puntos_totales FROM usuarios WHERE LOWER(TRIM(nickname)) = LOWER(TRIM(?))',
-            [nickname]
-        );
-
-        if (rows.length === 0) {
-            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Start Quiz - Iniciar Sesión</title>
+    <link rel="icon" type="image/png" href="Logo.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-card {
+            max-width: 480px;
+            margin: 40px auto;
+            background: rgba(15, 15, 25, 0.95);
+            border: 3px solid #00feff;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 0 25px rgba(0, 254, 255, 0.4);
+            text-align: center;
         }
-
-        const usuario = rows[0];
-
-        // Verificar la contraseña
-        if (usuario.password_hash !== password.trim()) {
-            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+        .title-login {
+            color: #00feff;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px #00feff;
         }
+        .sub-login {
+            color: #ffe600;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            color: #00feff;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            padding-right: 45px;
+            background: #000;
+            border: 1px solid #00feff;
+            border-radius: 6px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .btn-toggle-pass {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+        .eye-container {
+            position: relative;
+            display: inline-block;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+        .slash-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0055;
+            font-weight: bold;
+            font-size: 1.3rem;
+            pointer-events: none;
+            text-shadow: 0 0 3px #000;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #ffe600;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 0 10px #ffe600;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover {
+            transform: scale(1.02);
+            background: #fff066;
+        }
+        .alert-msg {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert-error { background: rgba(255, 0, 85, 0.2); border: 1px solid #ff0055; color: #ff0055; }
+        .alert-success { background: rgba(0, 255, 128, 0.2); border: 1px solid #00ff80; color: #00ff80; }
+        .link-alt {
+            display: block;
+            margin-top: 18px;
+            color: #ff0055;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .link-alt:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header style="text-align: center; margin-top: 20px;">
+            <img src="Logo.png" alt="Logo Press Start Quiz" class="logo-img">
+            <h1>Press Start Quiz</h1>
+        </header>
 
-        // Devolver datos del usuario al frontend
-        return res.status(200).json({
-            mensaje: 'Inicio de sesión exitoso',
-            userId: usuario.id,
-            nickname: usuario.nickname,
-            puntosTotales: usuario.puntos_totales
+        <div class="auth-card">
+            <h2 class="title-login">🔑 INICIAR SESIÓN</h2>
+            <p class="sub-login">Ingresa tus datos para acceder a tu perfil y jugar.</p>
+
+            <div id="alert-box" class="alert-msg"></div>
+
+            <form onsubmit="iniciarSesion(event)">
+                <div class="form-group">
+                    <label for="login-user">NOMBRE DE JUGADOR:</label>
+
+                    <!-- Atributos para prevenir mayúsculas/autocorrección móvil -->
+                    <input type="text" id="login-user" required placeholder="Tu nickname" autocapitalize="none" autocorrect="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="login-pass">CONTRASEÑA:</label>
+                    <div class="input-password-wrapper">
+                        <input type="password" id="login-pass" required placeholder="Tu contraseña" autocapitalize="none" autocorrect="off" spellcheck="false">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-pass', this)" title="Mostrar/Ocultar contraseña">
+                            <span class="eye-container">👁️<span class="slash-icon">/</span></span>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">🚀 INICIAR SESIÓN Y JUGAR</button>
+            </form>
+
+            <a href="registro.html" class="link-alt">← ¿No tienes cuenta aún? Crea una aquí</a>
+        </div>
+    </div>
+
+    <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const tempUser = localStorage.getItem('temp_registered_user');
+            if (tempUser) {
+                document.getElementById('login-user').value = tempUser;
+                localStorage.removeItem('temp_registered_user');
+            }
         });
 
-    } catch (error) {
-        console.error("Error en /api/login:", error);
-        return res.status(500).json({
-            error: 'Error al conectar con la base de datos',
-            detalle: error.message
-        });
-    }
-}
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.innerHTML = '<span class="eye-container">👁️</span>';
+            } else {
+                input.type = "password";
+                btn.innerHTML = '<span class="eye-container">👁️<span class="slash-icon">/</span></span>';
+            }
+        }
+
+        async function iniciarSesion(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+            const alertBox = document.getElementById('alert-box');
+
+            try {
+                // Petición real a la API Serverless conectada con Aiven
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname: user, password: pass })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('press_start_usuario_actual', data.nickname);
+                    localStorage.setItem('press_start_user_id', data.userId);
+
+                    if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
+
+                    alertBox.innerText = "🎮 ¡Sesión iniciada correctamente! Entrando al juego...";
+                    alertBox.className = "alert-msg alert-success";
+                    alertBox.style.display = "block";
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } else {
+                    if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
+                    alertBox.innerText = "❌ " + (data.error || "Usuario o contraseña incorrectos.");
+                    alertBox.className = "alert-msg alert-error";
+                    alertBox.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Error al iniciar sesión:", err);
+                if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
+                alertBox.innerText = "❌ Error al conectar con el servidor.";
+                alertBox.className = "alert-msg alert-error";
+                alertBox.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

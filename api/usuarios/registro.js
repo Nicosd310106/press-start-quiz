@@ -11,11 +11,19 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
+    // Sanitización estricta de entrada (quita espacios accidentales)
+    const nickClean = String(nickname).trim();
+    const passClean = String(password).trim();
+
+    if (nickClean.length < 3) {
+        return res.status(400).json({ error: 'El nombre de usuario debe tener al menos 3 caracteres' });
+    }
+
     try {
         // 1. Insertar el nuevo usuario en la base de datos de Aiven
         const [result] = await dbPool.execute(
             'INSERT INTO usuarios (nickname, password_hash, puntos_totales) VALUES (?, ?, 0)',
-            [nickname, password]
+            [nickClean, passClean]
         );
 
         const newUserId = result.insertId;
@@ -29,7 +37,7 @@ export default async function handler(req, res) {
         return res.status(201).json({
             mensaje: '¡Usuario registrado exitosamente!',
             userId: newUserId,
-            nickname: nickname
+            nickname: nickClean
         });
     } catch (error) {
         console.error("Error en /api/registro:", error);
