@@ -1,14 +1,15 @@
 import mysql from 'mysql2/promise';
 
-// Configuración de la conexión mediante Variables de Entorno de Vercel / Aiven
 export const dbPool = mysql.createPool({
-    host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
-    user: process.env.DB_USER || process.env.MYSQL_USER || 'root',
-    password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
-    database: process.env.DB_NAME || process.env.MYSQL_DATABASE || 'press_start_quiz',
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : (process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 26207),
-    ssl: { rejectUnauthorized: false }, // Requerido para Aiven en la nube
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || '27504', 10),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'press_start_quiz',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
