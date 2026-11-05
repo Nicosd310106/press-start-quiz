@@ -37,30 +37,48 @@ const Tienda = {
         console.warn('Error leyendo inventario de localStorage');
       }
     }
+    this.actualizarUI();
   },
 
   guardarDatos() {
     localStorage.setItem(this.STORAGE_PUNTOS, this.puntosDisponibles.toString());
     localStorage.setItem(this.STORAGE_INVENTARIO, JSON.stringify(this.inventario));
+    this.actualizarUI();
   },
 
-  // Sincroniza al finalizar una ronda enviando puntos al servidor de Aiven
-  async sumarPuntos(puntos) {
-    this.puntosDisponibles += puntos;
-    this.guardarDatos();
+  actualizarUI() {
+    // Actualizar puntos en el menú principal y dentro de la tienda
+    const spanMenu = document.getElementById("tienda-puntos-menu");
+    if (spanMenu) spanMenu.innerText = this.puntosDisponibles;
 
-    const userId = localStorage.getItem('press_start_user_id');
-    if (userId) {
-      try {
-        await fetch('/api/partida', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: userId, puntosObtenidos: puntos })
-        });
-      } catch (err) {
-        console.error('Error al sincronizar puntos con Aiven:', err);
-      }
-    }
+    const spanShop = document.getElementById("shop-points-display");
+    if (spanShop) spanShop.innerText = this.puntosDisponibles;
+
+    // Actualizar cantidades de comodines dentro de la tienda
+    const cantMitad = document.getElementById("shop-cant-mitad");
+    if (cantMitad) cantMitad.innerText = this.inventario.mitad || 0;
+
+    const cantEscudo = document.getElementById("shop-cant-escudo");
+    if (cantEscudo) cantEscudo.innerText = this.inventario.escudo || 0;
+
+    const cantSaltar = document.getElementById("shop-cant-saltar");
+    if (cantSaltar) cantSaltar.innerText = this.inventario.saltar || 0;
+
+    const cantDoble = document.getElementById("shop-cant-doble");
+    if (cantDoble) cantDoble.innerText = this.inventario.doble || 0;
+
+    // Actualizar HUD del juego si está en partida
+    const hudMitad = document.getElementById("cant-mitad");
+    if (hudMitad) hudMitad.innerText = this.inventario.mitad || 0;
+
+    const hudEscudo = document.getElementById("cant-escudo");
+    if (hudEscudo) hudEscudo.innerText = this.inventario.escudo || 0;
+
+    const hudSaltar = document.getElementById("cant-saltar");
+    if (hudSaltar) hudSaltar.innerText = this.inventario.saltar || 0;
+
+    const hudDoble = document.getElementById("cant-doble");
+    if (hudDoble) hudDoble.innerText = this.inventario.doble || 0;
   },
 
   comprarItem(itemKey) {
@@ -74,8 +92,10 @@ const Tienda = {
         Sonidos.playCompra();
       }
       return true;
+    } else {
+      alert("¡No tienes suficientes puntos!");
+      return false;
     }
-    return false;
   },
 
   usarItem(itemKey) {
@@ -87,5 +107,29 @@ const Tienda = {
     return false;
   }
 };
+
+// -------------------------------------------------------------
+// FUNCIONES GLOBALES QUE INVOCA EL HTML (index.html)
+// -------------------------------------------------------------
+function abrirTienda() {
+  const genreSel = document.getElementById("genre-selection");
+  const shopScreen = document.getElementById("shop-screen");
+  if (genreSel) genreSel.style.display = "none";
+  if (shopScreen) {
+    shopScreen.style.display = "block";
+    Tienda.actualizarUI();
+  }
+}
+
+function cerrarTienda() {
+  const genreSel = document.getElementById("genre-selection");
+  const shopScreen = document.getElementById("shop-screen");
+  if (shopScreen) shopScreen.style.display = "none";
+  if (genreSel) genreSel.style.display = "block";
+}
+
+function comprarComodin(tipo) {
+  Tienda.comprarItem(tipo);
+}
 
 Tienda.init();
