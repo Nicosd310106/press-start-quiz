@@ -92,19 +92,19 @@ async function obtenerPuntosUsuario() {
 function refrescarUIConPuntos(puntos) {
     const ptsNum = parseInt(puntos, 10) || 0;
 
-    // 1. Sincronizar el objeto Tienda global
+    // Sincronizar el objeto Tienda global
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
         Tienda.guardarDatos();
     }
 
-    // 2. Actualizar el span del menú principal
+    // Actualizar el span del botón del menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = ptsNum;
     }
 
-    // 3. Actualizar la pantalla de la Tienda si está abierta
+    // Actualizar la pantalla de la Tienda si está abierta
     const shopPointsDisp = document.getElementById("shop-points-display");
     if (shopPointsDisp) {
         shopPointsDisp.innerText = ptsNum;
@@ -154,15 +154,13 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 
         if (res.ok) {
             const data = await res.json();
-            console.log("Puntos guardados en Aiven MySQL:", data);
+            console.log("Puntos guardados con éxito en MySQL:", data);
 
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
             } else {
                 await obtenerPuntosUsuario();
             }
-        } else {
-            console.error("Error devuelto por /api/partida:", await res.text());
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
@@ -311,7 +309,7 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // GUARDADO EN TIEMPO REAL: Se envían los puntos acertados a Aiven MySQL
+        // GUARDADO EN TIEMPO REAL AL ACERTAR
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
@@ -322,7 +320,7 @@ function checkAnswer(index, q) {
             if (quizArea) {
                 quizArea.innerHTML = `
                     <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
-                    <p style="font-size: 1.5rem;">Puntaje final de la ronda: ${score}</p>
+                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
                     <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
                 `;
             }
@@ -343,7 +341,7 @@ function checkAnswer(index, q) {
     }
 }
 
-function volverAlMenu() {
+async function volverAlMenu() {
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
@@ -366,8 +364,9 @@ function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    obtenerPuntosUsuario();
-    cargarRanking();
+    // Recargar inmediatamente puntos y ranking al volver
+    await obtenerPuntosUsuario();
+    await cargarRanking();
 }
 
 function cerrarSesion() {
