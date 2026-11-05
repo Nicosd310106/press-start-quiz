@@ -90,28 +90,29 @@ async function obtenerPuntosUsuario() {
 }
 
 function refrescarUIConPuntos(puntos) {
-    // Sincronizar el objeto Tienda con los puntos reales traídos de Aiven
+    const ptsNum = parseInt(puntos, 10) || 0;
+
+    // 1. Sincronizar el objeto Tienda global
     if (typeof Tienda !== "undefined") {
-        Tienda.puntosDisponibles = puntos;
+        Tienda.puntosDisponibles = ptsNum;
         Tienda.guardarDatos();
     }
 
-    // Actualizar el span del botón del menú principal
+    // 2. Actualizar el span del menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
-        tiendaPtsSpan.innerText = puntos;
+        tiendaPtsSpan.innerText = ptsNum;
     }
 
-    // Actualizar la pantalla de la Tienda si está abierta
+    // 3. Actualizar la pantalla de la Tienda si está abierta
     const shopPointsDisp = document.getElementById("shop-points-display");
     if (shopPointsDisp) {
-        shopPointsDisp.innerText = puntos;
+        shopPointsDisp.innerText = ptsNum;
     }
 
-    // Si el botón tiene un ID específico o clase
     const btnTienda = document.getElementById("btn-tienda") || document.querySelector(".btn-tienda");
     if (btnTienda && !tiendaPtsSpan) {
-        btnTienda.innerHTML = `🛒 Tienda (<span id="tienda-puntos-menu">${puntos}</span> pts)`;
+        btnTienda.innerHTML = `🛒 Tienda (<span id="tienda-puntos-menu">${ptsNum}</span> pts)`;
     }
 }
 
@@ -146,20 +147,22 @@ async function guardarPuntosEnBD(puntajeObtenido) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: parseInt(userId),
+                userId: parseInt(userId, 10),
                 puntosObtenidos: puntajeObtenido
             })
         });
 
         if (res.ok) {
             const data = await res.json();
-            console.log("Puntos guardados con éxito en MySQL:", data);
+            console.log("Puntos guardados en Aiven MySQL:", data);
 
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
             } else {
                 await obtenerPuntosUsuario();
             }
+        } else {
+            console.error("Error devuelto por /api/partida:", await res.text());
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
@@ -301,21 +304,25 @@ function checkAnswer(index, q) {
     }
 
     if (esCorrecta) {
-        score += (10 * multiplicadorPuntos);
+        const puntosGanados = (10 * multiplicadorPuntos);
+        score += puntosGanados;
         multiplicadorPuntos = 1;
+
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
+
+        // GUARDADO EN TIEMPO REAL: Se envían los puntos acertados a Aiven MySQL
+        guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            guardarPuntosEnBD(score);
             const quizArea = document.getElementById("quiz");
             if (quizArea) {
                 quizArea.innerHTML = `
                     <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
-                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
+                    <p style="font-size: 1.5rem;">Puntaje final de la ronda: ${score}</p>
                     <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
                 `;
             }
@@ -326,7 +333,7 @@ function checkAnswer(index, q) {
             alert("🛡️ ¡El escudo absorbió el error!");
             return;
         }
-        guardarPuntosEnBD(score);
+
         const quizArea = document.getElementById("quiz");
         const gameOverScreen = document.getElementById("game-over-screen");
         if (quizArea) quizArea.style.display = "none";
