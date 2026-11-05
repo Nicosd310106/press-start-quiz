@@ -1,4 +1,4 @@
-import { dbPool } from '../db.js';
+import { dbPool } from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -7,27 +7,30 @@ export default async function handler(req, res) {
 
     const { userId, categoriaId, dificultad, puntajeObtenido, rachaMaxima } = req.body;
 
-    if (!userId || !puntajeObtenido) {
+    if (!userId || puntajeObtenido === undefined) {
         return res.status(400).json({ error: 'Faltan datos obligatorios (userId, puntajeObtenido)' });
     }
 
     try {
-        // 1. Sumar los puntos obtenidos al total acumulado del usuario
+        // 1. Sumar los puntos obtenidos al total acumulado del usuario en Aiven
         await dbPool.execute(
-            'UPDATE usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
+            'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntajeObtenido, userId]
         );
 
         // 2. Registrar el historial de la partida
         if (categoriaId) {
             await dbPool.execute(
-                'INSERT INTO partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido, racha_maxima) VALUES (?, ?, ?, ?, ?)',
+                'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido, racha_maxima) VALUES (?, ?, ?, ?, ?)',
                 [userId, categoriaId, dificultad || 'Estándar', puntajeObtenido, rachaMaxima || 0]
             );
         }
 
         // 3. Obtener los puntos actualizados del usuario
-        const [rows] = await dbPool.execute('SELECT puntos_totales FROM usuarios WHERE id = ?', [userId]);
+        const [rows] = await dbPool.execute(
+            'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
+            [userId]
+        );
 
         return res.status(200).json({
             exito: true,

@@ -1,5 +1,5 @@
 /**
- * tienda.js - Módulo de ayudas / tienda estilo roguelike
+ * tienda.js - Módulo de ayudas / tienda estilo roguelike con sincronización Aiven
  */
 
 const Tienda = {
@@ -11,7 +11,6 @@ const Tienda = {
     doble: 0    // Duplica los puntos de la siguiente
   },
   
-  // Precios
   PRECIOS: {
     mitad: 30,
     escudo: 50,
@@ -45,9 +44,23 @@ const Tienda = {
     localStorage.setItem(this.STORAGE_INVENTARIO, JSON.stringify(this.inventario));
   },
 
-  sumarPuntos(puntos) {
+  // Sincroniza al finalizar una ronda enviando puntos al servidor de Aiven
+  async sumarPuntos(puntos) {
     this.puntosDisponibles += puntos;
     this.guardarDatos();
+
+    const userId = localStorage.getItem('press_start_user_id');
+    if (userId) {
+      try {
+        await fetch('/api/partida', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId, puntosObtenidos: puntos })
+        });
+      } catch (err) {
+        console.error('Error al sincronizar puntos con Aiven:', err);
+      }
+    }
   },
 
   comprarItem(itemKey) {
@@ -57,8 +70,7 @@ const Tienda = {
       this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
       this.guardarDatos();
 
-      // Reproducir sonido de compra retro
-      if (typeof Sonidos !== 'undefined') {
+      if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
         Sonidos.playCompra();
       }
       return true;

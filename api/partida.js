@@ -1,4 +1,4 @@
-import { dbPool } from '../db.js';
+import { dbPool } from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -12,15 +12,15 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. Sumar los nuevos puntos/monedas al total del usuario en MySQL
+        // 1. Sumar los puntos/monedas al total del usuario en MySQL Aiven
         await dbPool.execute(
-            'UPDATE usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
+            'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntosObtenidos || 0, userId]
         );
 
         // 2. Registrar la partida en la tabla de historial
         await dbPool.execute(
-            'INSERT INTO partidas (usuario_id, puntaje_obtenido) VALUES (?, ?)',
+            'INSERT INTO press_start_quiz.partidas (usuario_id, puntaje_obtenido) VALUES (?, ?)',
             [userId, puntosObtenidos || 0]
         );
 
