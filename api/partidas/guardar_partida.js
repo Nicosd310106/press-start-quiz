@@ -1,4 +1,4 @@
-import { dbPool } from './db.js';
+import { dbPool } from '../../db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -12,13 +12,13 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. Sumar los puntos obtenidos al total acumulado del usuario en Aiven
+        // 1. Sumar los puntos obtenidos al total del usuario en Aiven
         await dbPool.execute(
             'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntajeObtenido, userId]
         );
 
-        // 2. Registrar el historial de la partida
+        // 2. Registrar la partida en el historial
         if (categoriaId) {
             await dbPool.execute(
                 'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido, racha_maxima) VALUES (?, ?, ?, ?, ?)',
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
             );
         }
 
-        // 3. Obtener los puntos actualizados del usuario
+        // 3. Devolver los puntos actualizados
         const [rows] = await dbPool.execute(
             'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
             [userId]
@@ -38,6 +38,6 @@ export default async function handler(req, res) {
         });
     } catch (error) {
         console.error("Error al guardar partida/puntos:", error);
-        return res.status(500).json({ error: 'Error interno en el servidor', detalle: error.message });
+        return res.status(500).json({ error: 'Error al conectar con la base de datos', detalle: error.message });
     }
 }
