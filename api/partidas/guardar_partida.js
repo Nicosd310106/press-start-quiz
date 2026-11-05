@@ -26,7 +26,7 @@ export default async function handler(req, res) {
             );
         }
 
-        // 3. Devolver los puntos actualizados
+        // 3. Obtener los puntos actualizados
         const [rows] = await dbPool.execute(
             'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
             [userId]
