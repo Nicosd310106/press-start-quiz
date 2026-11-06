@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Selección de género
         document.querySelectorAll(".btn-genre").forEach(btn => {
             btn.addEventListener("click", () => {
+                if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
                 selectedGenre = btn.getAttribute("data-genre");
                 const labelEl = document.getElementById("selected-genre-label");
                 if (labelEl) labelEl.innerText = selectedGenre;
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnBackGenre = document.getElementById("btn-back-genre");
         if (btnBackGenre) {
             btnBackGenre.addEventListener("click", () => {
+                if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
                 const genreSel = document.getElementById("genre-selection");
                 const diffSel = document.getElementById("difficulty-selection");
                 if (diffSel) diffSel.style.display = "none";
@@ -50,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Selección de dificultad
         document.querySelectorAll(".btn-difficulty").forEach(btn => {
             btn.addEventListener("click", () => {
+                if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
                 selectedLevel = btn.getAttribute("data-level");
                 nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
                 iniciarQuiz(selectedGenre, selectedLevel);
@@ -250,7 +253,7 @@ async function iniciarQuiz(genre, level) {
         <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
         <h2 id="question">Cargando preguntas de la BD...</h2>
         <div id="options-container" class="options-grid">
-            <p style="text-align: center; color: #00feff; font-size: 1.1rem;">Conectando con la base de datos... 🎮</p>
+            <p style="text-align: center; color: #00feff; font-size: 1.1rem;">⚡ Conectando con la base de datos de Aiven... 🎮</p>
         </div>
     `;
 
@@ -261,7 +264,7 @@ async function iniciarQuiz(genre, level) {
         console.error("Error al iniciar el Quiz:", error);
         if (quizArea) {
             quizArea.innerHTML = `
-                <h2 style="color: #ff003c;">ERROR</h2>
+                <h2 style="color: #ff003c;">ERROR DE CONEXIÓN</h2>
                 <p style="font-size: 0.9rem; color: #fff;">${error.message}</p>
                 <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
             `;
@@ -323,6 +326,8 @@ function checkAnswer(index, q) {
     }
 
     if (esCorrecta) {
+        if (typeof Sonidos !== "undefined" && typeof Sonidos.playAcierto === "function") Sonidos.playAcierto();
+
         const puntosGanados = (10 * multiplicadorPuntos);
         score += puntosGanados;
         multiplicadorPuntos = 1;
@@ -348,9 +353,12 @@ function checkAnswer(index, q) {
     } else {
         if (escudoActivo) {
             escudoActivo = false;
+            if (typeof Sonidos !== "undefined" && typeof Sonidos.playPowerUp === "function") Sonidos.playPowerUp();
             alert("🛡️ ¡El escudo absorbió el error!");
             return;
         }
+
+        if (typeof Sonidos !== "undefined" && typeof Sonidos.playError === "function") Sonidos.playError();
 
         const quizArea = document.getElementById("quiz");
         const gameOverScreen = document.getElementById("game-over-screen");
@@ -361,7 +369,6 @@ function checkAnswer(index, q) {
     }
 }
 
-// LÓGICA DE COMODINES DE PARTIDA (50/50, Escudo, Saltar y x2 Pts)
 function usarComodin(tipo) {
     if (typeof Tienda === "undefined") return;
 
@@ -372,6 +379,8 @@ function usarComodin(tipo) {
 
     const q = bancoMezclado[currentIndex];
     if (!q) return;
+
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playPowerUp === "function") Sonidos.playPowerUp();
 
     if (tipo === 'mitad') {
         const container = document.getElementById("options-container") || document.getElementById("quiz");
@@ -428,6 +437,7 @@ function usarComodin(tipo) {
 }
 
 async function volverAlMenu() {
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
