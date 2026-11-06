@@ -13,10 +13,10 @@ export default async function handler(req, res) {
 
     try {
         const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
-        const idCategoria = parseInt(categoriaId, 10) || 1; // Si no viene categoría, usa 1 por defecto
+        const idCategoria = parseInt(categoriaId, 10) || 1; 
         let idUsuario = userId ? parseInt(userId, 10) : null;
 
-        // Si no se envió ID, buscar por nickname en la base de datos de Aiven
+        // Si no viene ID, buscar por el nickname del usuario en MySQL
         if (!idUsuario && nickname) {
             const [users] = await dbPool.execute(
                 'SELECT id FROM press_start_quiz.usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
@@ -31,19 +31,19 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado en la BD' });
         }
 
-        // 1. Sumar los puntos en el total del usuario en MySQL Aiven
+        // 1. Update de puntos acumulados en MySQL Aiven
         await dbPool.execute(
             'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntosASumar, idUsuario]
         );
 
-        // 2. Insertar en la tabla partidas incluyendo categoria_id para cumplir con el esquema de la BD
+        // 2. Registro de la partida con categoria_id
         await dbPool.execute(
             'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, puntaje_obtenido) VALUES (?, ?, ?)',
             [idUsuario, idCategoria, puntosASumar]
         );
 
-        // 3. Traer los puntos acumulados totales
+        // 3. Traer el total acumulado de la base de datos
         const [rows] = await dbPool.execute(
             'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
             [idUsuario]

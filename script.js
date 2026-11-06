@@ -92,27 +92,22 @@ async function obtenerPuntosUsuario() {
 function refrescarUIConPuntos(puntos) {
     const ptsNum = parseInt(puntos, 10) || 0;
 
-    // Sincronizar el objeto Tienda global
+    // Sincronizar el objeto Tienda global y guardar en localStorage
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
         Tienda.guardarDatos();
     }
 
-    // Actualizar el span del menú principal
+    // Actualizar el menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = ptsNum;
     }
 
-    // Actualizar la pantalla de la Tienda si está abierta
+    // Actualizar la pantalla de la Tienda
     const shopPointsDisp = document.getElementById("shop-points-display");
     if (shopPointsDisp) {
         shopPointsDisp.innerText = ptsNum;
-    }
-
-    const btnTienda = document.getElementById("btn-tienda") || document.querySelector(".btn-tienda");
-    if (btnTienda && !tiendaPtsSpan) {
-        btnTienda.innerHTML = `🛒 Tienda (<span id="tienda-puntos-menu">${ptsNum}</span> pts)`;
     }
 }
 
@@ -144,6 +139,15 @@ async function guardarPuntosEnBD(puntajeObtenido) {
     
     if (puntajeObtenido <= 0) return;
 
+    // Determinar la categoría según el género seleccionado
+    const genreLower = (selectedGenre || "").toLowerCase();
+    let catId = 1;
+    if (genreLower.includes("rpg")) catId = 2;
+    else if (genreLower.includes("acción") || genreLower.includes("aventura")) catId = 3;
+    else if (genreLower.includes("shooter") || genreLower.includes("disparos")) catId = 4;
+    else if (genreLower.includes("lucha") || genreLower.includes("peleas")) catId = 5;
+    else if (genreLower.includes("plataforma")) catId = 6;
+
     try {
         const res = await fetch('/api/partida', {
             method: 'POST',
@@ -151,6 +155,7 @@ async function guardarPuntosEnBD(puntajeObtenido) {
             body: JSON.stringify({
                 userId: userId ? parseInt(userId, 10) : null,
                 nickname: usuarioActual,
+                categoriaId: catId,
                 puntosObtenidos: puntajeObtenido
             })
         });
@@ -312,7 +317,7 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // GUARDADO EN TIEMPO REAL: Se envían los puntos acertados a Aiven MySQL
+        // Guardar los puntos ganados en Aiven MySQL en tiempo real
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
@@ -367,7 +372,7 @@ async function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    // Recargar inmediatamente puntos y ranking al volver
+    // Recargar puntos y ranking al volver al menú
     await obtenerPuntosUsuario();
     await cargarRanking();
 }
