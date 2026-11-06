@@ -80,6 +80,7 @@
                     </button>
                 </div>
 
+                <!-- TABLA DE POSICIONES / RANKING INTEGRADA -->
                 <div id="ranking-container" style="margin-top: 15px; border: 1px solid #00feff; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.4);">
                     <h3 style="color: #ffe600; margin: 0 0 8px 0; text-align: center; font-size: 1rem;">🏆 TOP 10 JUGADORES (RANKING)</h3>
                     <ol id="ranking-lista" style="padding-left: 20px; color: #fff; font-size: 0.85rem; margin: 0;">
@@ -124,6 +125,7 @@
         </div>
 
         <div id="game" style="display: none;">
+            <!-- HUD Superior del Juego con Botón de Guardar Progreso -->
             <div id="status" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
@@ -132,6 +134,7 @@
                 </button>
             </div>
 
+            <!-- HUD de Comodines en Partida -->
             <div id="shop-hud" style="margin-bottom: 10px; display: flex; gap: 4px; justify-content: center;">
                 <button id="btn-powerup-mitad" class="btn-powerup" onclick="usarComodin('mitad')">✂️ 50/50 (<span id="cant-mitad">0</span>)</button>
                 <button id="btn-powerup-escudo" class="btn-powerup" onclick="usarComodin('escudo')">🛡️ Escudo (<span id="cant-escudo">0</span>)</button>
@@ -139,6 +142,7 @@
                 <button id="btn-powerup-doble" class="btn-powerup" onclick="usarComodin('doble')">✨ x2 Pts (<span id="cant-doble">0</span>)</button>
             </div>
 
+            <!-- Indicador de Precarga de Modo Infinito -->
             <div id="infinite-loader" style="display: none; font-size: 0.75rem; color: #ffe600; margin-bottom: 8px;">
                 ⚡ Cargando más preguntas en segundo plano...
             </div>
@@ -163,6 +167,7 @@
         </div>
     </div>
 
+    <!-- Carga defensiva y ordenada de scripts -->
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script src="tienda.js" onerror="console.warn('tienda.js no cargado')"></script>
     <script src="modo-infinito.js" onerror="console.warn('modo-infinito.js no cargado')"></script>
