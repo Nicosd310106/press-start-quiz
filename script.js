@@ -62,8 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        if (typeof actualizarPantallaTienda === "function") {
-            actualizarPantallaTienda();
+        if (typeof Tienda !== "undefined" && typeof Tienda.actualizarUI === "function") {
+            Tienda.actualizarUI();
         }
 
         cargarRanking();
@@ -135,7 +135,6 @@ async function cargarRanking() {
     }
 }
 
-// BOTÓN MANUAL DE GUARDAR PROGRESO
 async function guardarProgresoManual() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
 
@@ -171,7 +170,7 @@ async function guardarProgresoManual() {
         if (res.ok) {
             const data = await res.json();
             alert(`💾 ¡Progreso guardado con éxito! Se sumaron +${puntosPartidaPendientes} puntos a tu cuenta.`);
-            puntosPartidaPendientes = 0; // Reiniciar saldo pendiente de la partida actual
+            puntosPartidaPendientes = 0;
 
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
@@ -342,7 +341,7 @@ function checkAnswer(index, q) {
     if (esCorrecta) {
         if (typeof Sonidos !== "undefined" && typeof Sonidos.playAcierto === "function") Sonidos.playAcierto();
 
-        let puntosBase = 20; // Fácil o Modo Infinito
+        let puntosBase = 20;
         const diffLower = (selectedLevel || "").toLowerCase();
 
         if (diffLower.includes("media") || diffLower.includes("medio")) {
@@ -471,6 +470,7 @@ async function volverAlMenu() {
     const menuEl = document.getElementById("menu");
     const genreSelection = document.getElementById("genre-selection");
     const diffSelection = document.getElementById("difficulty-selection");
+    const shopScreen = document.getElementById("shop-screen");
     const quizArea = document.getElementById("quiz");
 
     if (quizArea) {
@@ -481,6 +481,7 @@ async function volverAlMenu() {
     if (gameEl) gameEl.style.display = "none";
     if (gameOverScreen) gameOverScreen.style.display = "none";
     if (diffSelection) diffSelection.style.display = "none";
+    if (shopScreen) shopScreen.style.display = "none";
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 

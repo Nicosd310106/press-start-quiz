@@ -1,5 +1,5 @@
 /**
- * tienda.js - Módulo de ayudas / tienda estilo roguelike con sincronización Aiven
+ * tienda.js - Módulo de la tienda arcade con sincronización en Aiven MySQL
  */
 
 const Tienda = {
@@ -91,7 +91,6 @@ const Tienda = {
     const usuarioActual = localStorage.getItem('press_start_usuario_actual');
 
     try {
-      // 1. Enviar petición para descontar en Aiven MySQL
       const res = await fetch('/api/tienda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,7 +104,6 @@ const Tienda = {
       const data = await res.json();
 
       if (res.ok && data.exito) {
-        // 2. Sincronizar el saldo devuelto por Aiven MySQL
         this.puntosDisponibles = data.puntosTotales;
         this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
         this.guardarDatos();
@@ -120,7 +118,6 @@ const Tienda = {
       }
     } catch (e) {
       console.error("Error conectando con /api/tienda:", e);
-      // Fallback local por si acaso
       this.puntosDisponibles -= precio;
       this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
       this.guardarDatos();
@@ -138,25 +135,49 @@ const Tienda = {
   }
 };
 
-function abrirTienda() {
+window.abrirTienda = function() {
+  if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") {
+    Sonidos.playClic();
+  }
+  const mainContainer = document.getElementById("menu");
   const genreSel = document.getElementById("genre-selection");
+  const diffSel = document.getElementById("difficulty-selection");
   const shopScreen = document.getElementById("shop-screen");
+  
+  if (mainContainer) mainContainer.style.display = "block";
   if (genreSel) genreSel.style.display = "none";
+  if (diffSel) diffSel.style.display = "none";
+  
   if (shopScreen) {
     shopScreen.style.display = "block";
     Tienda.actualizarUI();
   }
-}
+};
 
-function cerrarTienda() {
+window.cerrarTienda = function() {
+  if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") {
+    Sonidos.playClic();
+  }
   const genreSel = document.getElementById("genre-selection");
   const shopScreen = document.getElementById("shop-screen");
+  
   if (shopScreen) shopScreen.style.display = "none";
   if (genreSel) genreSel.style.display = "block";
-}
+};
 
-function comprarComodin(tipo) {
+window.comprarComodin = function(tipo) {
   Tienda.comprarItem(tipo);
-}
+};
 
-Tienda.init();
+document.addEventListener("DOMContentLoaded", () => {
+  Tienda.init();
+
+  // Escuchador preventivo directo en el botón por si onclick falla
+  const btnTienda = document.querySelector("button[onclick*='abrirTienda()']");
+  if (btnTienda) {
+    btnTienda.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.abrirTienda();
+    });
+  }
+});
