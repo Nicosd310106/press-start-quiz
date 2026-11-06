@@ -5,7 +5,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Método no permitido' });
     }
 
-    const { userId, nickname, puntosObtenidos } = req.body;
+    const { userId, nickname, puntosObtenidos, categoriaId } = req.body;
 
     if (!userId && !nickname) {
         return res.status(400).json({ error: 'Falta identificación de usuario' });
@@ -13,6 +13,7 @@ export default async function handler(req, res) {
 
     try {
         const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
+        const idCategoria = parseInt(categoriaId, 10) || 1; // Si no viene categoría, usa 1 por defecto
         let idUsuario = userId ? parseInt(userId, 10) : null;
 
         // Si no se envió ID, buscar por nickname en la base de datos de Aiven
@@ -30,16 +31,16 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado en la BD' });
         }
 
-        // 1. Sumar los puntos en MySQL Aiven
+        // 1. Sumar los puntos en el total del usuario en MySQL Aiven
         await dbPool.execute(
             'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntosASumar, idUsuario]
         );
 
-        // 2. Insertar en el historial de partidas
+        // 2. Insertar en la tabla partidas incluyendo categoria_id para cumplir con el esquema de la BD
         await dbPool.execute(
-            'INSERT INTO press_start_quiz.partidas (usuario_id, puntaje_obtenido) VALUES (?, ?)',
-            [idUsuario, puntosASumar]
+            'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, puntaje_obtenido) VALUES (?, ?, ?)',
+            [idUsuario, idCategoria, puntosASumar]
         );
 
         // 3. Traer los puntos acumulados totales
