@@ -160,11 +160,13 @@
         </div>
 
         <div id="game" style="display: none;">
-            <!-- HUD Superior del Juego -->
-            <div id="status">
+            <!-- HUD Superior del Juego con Botón de Guardar Progreso -->
+            <div id="status" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
-                <span id="infinite-streak-badge" style="display: none; color: #ffe600; font-weight: bold;">Racha: <span id="streak-display">0</span></span>
+                <button id="btn-guardar-progreso" class="btn-powerup" onclick="guardarProgresoManual()" style="background: #00feff; color: #000; border-color: #00feff; font-weight: bold; width: auto; padding: 4px 10px; cursor: pointer;">
+                    💾 Guardar Progreso
+                </button>
             </div>
 
             <!-- HUD de Comodines en Partida -->
@@ -188,27 +190,16 @@
             <div id="game-over-screen" style="display: none;">
                 <h2>GAME OVER</h2>
                 <p>Tu puntuación final: <span id="score-over">0</span></p>
-                <div id="infinite-game-over-stats" style="display: none; margin: 10px 0;">
-                    <p style="color: #ffe600;">Racha alcanzada: <span id="final-streak-over">0</span></p>
-                    <p style="color: #00feff;">Mejor racha histórica: <span id="best-streak-over">0</span></p>
+                <div style="margin: 15px 0;">
+                    <button class="btn-powerup" onclick="guardarProgresoManual()" style="background: #00feff; color: #000; border-color: #00feff; font-weight: bold; width: 100%; padding: 8px 12px; margin-bottom: 10px; cursor: pointer;">
+                        💾 Guardar Puntos en la BD
+                    </button>
                 </div>
-                <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN</button>
+                <button onclick="volverAlMenu()" class="btn-retry">INSERT COIN (VOLVER AL MENÚ)</button>
             </div>
 
             <div id="message"></div>
         </div>
-    </div>
-
-    <!-- MODAL POPUP PARA CONFIRMAR GUARDADO DE PROGRESO -->
-    <div id="modal-guardar-progreso" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center;">
-      <div style="background: #120924; border: 3px solid #ff007f; box-shadow: 0 0 20px #ff007f; padding: 25px; border-radius: 12px; text-align: center; max-width: 320px; width: 90%;">
-        <h3 style="color: #00feff; margin-bottom: 15px; font-family: monospace;">¿Quieres guardar el progreso?</h3>
-        <p id="modal-puntos-texto" style="color: #fff; margin-bottom: 20px;">Ganaste X puntos en esta ronda.</p>
-        <div style="display: flex; justify-content: space-around;">
-          <button class="btn-option" style="width: 45%; background: #00feff; color: #000; font-weight: bold;" onclick="confirmarGuardado(true)">SÍ</button>
-          <button class="btn-option" style="width: 45%; background: #ff003c; color: #fff; font-weight: bold;" onclick="confirmarGuardado(false)">NO</button>
-        </div>
-      </div>
     </div>
 
     <!-- Carga defensiva y ordenada de scripts -->

@@ -5,7 +5,7 @@ let currentIndex = 0;
 let score = 0;
 let nivelActualLabel = "";
 
-// Puntos acumulados en la partida actual pendientes de confirmación
+// Puntos acumulados en la partida actual pendientes de guardar
 let puntosPartidaPendientes = 0;
 
 // Modificadores activos por comodín
@@ -135,12 +135,18 @@ async function cargarRanking() {
     }
 }
 
-async function guardarPuntosEnBD(puntajeObtenido) {
+// BOTÓN MANUAL DE GUARDAR PROGRESO
+async function guardarProgresoManual() {
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+
+    if (puntosPartidaPendientes <= 0) {
+        alert("¡Aún no tienes nuevos puntos generados en esta partida para guardar!");
+        return;
+    }
+
     const userId = localStorage.getItem('press_start_user_id');
     const usuarioActual = localStorage.getItem('press_start_usuario_actual');
     
-    if (puntajeObtenido <= 0) return;
-
     const genreLower = (selectedGenre || "").toLowerCase();
     let catId = 1;
     if (genreLower.includes("rpg")) catId = 2;
@@ -158,20 +164,26 @@ async function guardarPuntosEnBD(puntajeObtenido) {
                 nickname: usuarioActual,
                 categoriaId: catId,
                 dificultad: selectedLevel || "Fácil",
-                puntosObtenidos: puntajeObtenido
+                puntosObtenidos: puntosPartidaPendientes
             })
         });
 
         if (res.ok) {
             const data = await res.json();
+            alert(`💾 ¡Progreso guardado con éxito! Se sumaron +${puntosPartidaPendientes} puntos a tu cuenta.`);
+            puntosPartidaPendientes = 0; // Reiniciar saldo pendiente de la partida actual
+
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
             } else {
                 await obtenerPuntosUsuario();
             }
+        } else {
+            alert("Ocurrió un error al guardar los puntos en el servidor.");
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
+        alert("Error de conexión al intentar guardar en Aiven MySQL.");
     }
 }
 
@@ -446,36 +458,9 @@ function usarComodin(tipo) {
     }
 }
 
-// MUESTRA EL MODAL AL VOLVER AL MENÚ
-function volverAlMenu() {
+async function volverAlMenu() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
 
-    if (puntosPartidaPendientes > 0) {
-        const modal = document.getElementById("modal-guardar-progreso");
-        const texto = document.getElementById("modal-puntos-texto");
-        if (texto) texto.innerText = `Ganaste ${puntosPartidaPendientes} puntos en esta partida.`;
-        if (modal) {
-            modal.style.display = "flex";
-            return;
-        }
-    }
-    ejecutarSalidaAlMenu();
-}
-
-// ACCIÓN DE LOS BOTONES SÍ / NO DEL MODAL
-async function confirmarGuardado(deseaGuardar) {
-    const modal = document.getElementById("modal-guardar-progreso");
-    if (modal) modal.style.display = "none";
-
-    if (deseaGuardar && puntosPartidaPendientes > 0) {
-        await guardarPuntosEnBD(puntosPartidaPendientes);
-    }
-
-    puntosPartidaPendientes = 0;
-    ejecutarSalidaAlMenu();
-}
-
-async function ejecutarSalidaAlMenu() {
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
