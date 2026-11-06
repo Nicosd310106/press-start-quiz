@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
     <script>
-        // Verificación inmediata antes de cargar la pantalla
         (function() {
             const usuarioActual = localStorage.getItem("press_start_usuario_actual");
             if (!usuarioActual) {
@@ -33,9 +32,9 @@
             <div id="genre-selection">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <p class="menu-subtitle" style="margin: 0;">Elige el género de videojuegos</p>
-                    <button class="btn-powerup" onclick="abrirTienda()" style="width: auto; padding: 4px 10px;">
+                    <a href="tienda.html" class="btn-powerup" style="width: auto; padding: 4px 10px; text-decoration: none; display: inline-flex; align-items: center; cursor: pointer;">
                         🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
-                    </button>
+                    </a>
                 </div>
                 
                 <div class="menu-options" style="max-height: 280px; overflow-y: auto; padding-right: 5px;">
@@ -81,7 +80,6 @@
                     </button>
                 </div>
 
-                <!-- TABLA DE POSICIONES / RANKING INTEGRADA -->
                 <div id="ranking-container" style="margin-top: 15px; border: 1px solid #00feff; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.4);">
                     <h3 style="color: #ffe600; margin: 0 0 8px 0; text-align: center; font-size: 1rem;">🏆 TOP 10 JUGADORES (RANKING)</h3>
                     <ol id="ranking-lista" style="padding-left: 20px; color: #fff; font-size: 0.85rem; margin: 0;">
@@ -123,44 +121,9 @@
                 </div>
                 <button id="btn-back-genre" class="btn-option" style="margin-top: 15px;">← Cambiar Género</button>
             </div>
-
-            <!-- PANTALLA DE LA TIENDA DE AYUDAS -->
-            <div id="shop-screen" style="display: none;">
-                <h2 style="color: #ffe600; font-size: 1.2rem; margin-bottom: 5px;">🛒 TIENDA ARCADE</h2>
-                <p class="menu-subtitle">Puntos disponibles: <span id="shop-points-display" style="color: #00feff; font-weight: bold;">0</span></p>
-                
-                <div class="menu-options" style="gap: 10px;">
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✂️ 50/50 (30 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Elimina dos opciones incorrectas.</div>
-                        <button onclick="comprarComodin('mitad')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-mitad">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">🛡️ Escudo (50 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Te perdona 1 respuesta incorrecta.</div>
-                        <button onclick="comprarComodin('escudo')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-escudo">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">⏭️ Saltar Pregunta (20 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Avanza a la siguiente pregunta sin penalización.</div>
-                        <button onclick="comprarComodin('saltar')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-saltar">0</span>)</button>
-                    </div>
-
-                    <div class="shop-item" style="border: 1px solid #00feff; padding: 8px; border-radius: 8px; text-align: left;">
-                        <div style="font-weight: bold; color: #00feff;">✨ Doble Puntuación (40 pts)</div>
-                        <div style="font-size: 0.75rem; color: #ccc;">Duplica los puntos recibidos en la respuesta.</div>
-                        <button onclick="comprarComodin('doble')" class="btn-powerup" style="margin-top: 5px; width: 100%;">Comprar (Tienes <span id="shop-cant-doble">0</span>)</button>
-                    </div>
-                </div>
-
-                <button onclick="cerrarTienda()" class="btn-option" style="margin-top: 15px;">← Volver al Menú</button>
-            </div>
         </div>
 
         <div id="game" style="display: none;">
-            <!-- HUD Superior del Juego con Botón de Guardar Progreso -->
             <div id="status" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
@@ -169,7 +132,6 @@
                 </button>
             </div>
 
-            <!-- HUD de Comodines en Partida -->
             <div id="shop-hud" style="margin-bottom: 10px; display: flex; gap: 4px; justify-content: center;">
                 <button id="btn-powerup-mitad" class="btn-powerup" onclick="usarComodin('mitad')">✂️ 50/50 (<span id="cant-mitad">0</span>)</button>
                 <button id="btn-powerup-escudo" class="btn-powerup" onclick="usarComodin('escudo')">🛡️ Escudo (<span id="cant-escudo">0</span>)</button>
@@ -177,7 +139,6 @@
                 <button id="btn-powerup-doble" class="btn-powerup" onclick="usarComodin('doble')">✨ x2 Pts (<span id="cant-doble">0</span>)</button>
             </div>
 
-            <!-- Indicador de Precarga de Modo Infinito -->
             <div id="infinite-loader" style="display: none; font-size: 0.75rem; color: #ffe600; margin-bottom: 8px;">
                 ⚡ Cargando más preguntas en segundo plano...
             </div>
@@ -202,7 +163,6 @@
         </div>
     </div>
 
-    <!-- Carga defensiva y ordenada de scripts -->
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script src="tienda.js" onerror="console.warn('tienda.js no cargado')"></script>
     <script src="modo-infinito.js" onerror="console.warn('modo-infinito.js no cargado')"></script>

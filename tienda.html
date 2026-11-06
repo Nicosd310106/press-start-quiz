@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="Logo.png">
     <link rel="stylesheet" href="style.css">
     <script>
-        // Verificación de sesión de usuario
         (function() {
             const usuarioActual = localStorage.getItem("press_start_usuario_actual");
             if (!usuarioActual) {
@@ -45,7 +44,7 @@
 
                 <div class="shop-item" style="border: 1px solid #00feff; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.4); text-align: left;">
                     <div style="font-weight: bold; color: #00feff; font-size: 0.9rem;">🛡️ Escudo (50 pts)</div>
-                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Te protege de perdonarte 1 respuesta incorrecta.</div>
+                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Te perdona 1 respuesta incorrecta.</div>
                     <button onclick="comprarComodin('escudo')" class="btn-powerup" style="margin-top: 8px; width: 100%;">
                         Comprar (Tienes <span id="shop-cant-escudo">0</span>)
                     </button>
@@ -53,7 +52,7 @@
 
                 <div class="shop-item" style="border: 1px solid #00feff; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.4); text-align: left;">
                     <div style="font-weight: bold; color: #00feff; font-size: 0.9rem;">⏭️ Saltar Pregunta (20 pts)</div>
-                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Pasa a la siguiente pregunta sin perder puntos ni vidas.</div>
+                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Avanza a la siguiente pregunta sin penalización.</div>
                     <button onclick="comprarComodin('saltar')" class="btn-powerup" style="margin-top: 8px; width: 100%;">
                         Comprar (Tienes <span id="shop-cant-saltar">0</span>)
                     </button>
@@ -61,7 +60,7 @@
 
                 <div class="shop-item" style="border: 1px solid #00feff; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.4); text-align: left;">
                     <div style="font-weight: bold; color: #00feff; font-size: 0.9rem;">✨ Doble Puntuación (40 pts)</div>
-                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Duplica el valor de puntos recibidos al acertar.</div>
+                    <div style="font-size: 0.75rem; color: #ccc; margin: 4px 0;">Duplica los puntos recibidos en la respuesta.</div>
                     <button onclick="comprarComodin('doble')" class="btn-powerup" style="margin-top: 8px; width: 100%;">
                         Comprar (Tienes <span id="shop-cant-doble">0</span>)
                     </button>
@@ -70,13 +69,12 @@
 
             <div style="margin-top: 20px; text-align: center;">
                 <a href="index.html" class="btn-option" style="text-decoration: none; display: inline-block;">
-                    ← Volver a Jugar
+                    ← Volver al Juego
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Scripts de la tienda -->
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script src="tienda.js"></script>
 </body>

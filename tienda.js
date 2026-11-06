@@ -1,54 +1,163 @@
-import pool from './db.js';
+/**
+ * tienda.js - Frontend de compras sincronizado con Aiven MySQL
+ */
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
+const Tienda = {
+  puntosDisponibles: 0,
+  inventario: {
+    mitad: 0,
+    escudo: 0,
+    saltar: 0,
+    doble: 0
+  },
+  
+  PRECIOS: {
+    mitad: 30,
+    escudo: 50,
+    saltar: 20,
+    doble: 40
+  },
+
+  STORAGE_PUNTOS: 'press_start_quiz_puntos_tienda',
+  STORAGE_INVENTARIO: 'press_start_quiz_inventario',
+
+  init() {
+    this.cargarDatos();
+    this.sincronizarConBD();
+  },
+
+  cargarDatos() {
+    const pts = localStorage.getItem(this.STORAGE_PUNTOS);
+    this.puntosDisponibles = pts ? parseInt(pts, 10) : 0;
+
+    const inv = localStorage.getItem(this.STORAGE_INVENTARIO);
+    if (inv) {
+      try {
+        this.inventario = JSON.parse(inv);
+      } catch (e) {
+        console.warn('Error leyendo inventario local');
+      }
+    }
+    this.actualizarUI();
+  },
+
+  async sincronizarConBD() {
+    const userId = localStorage.getItem('press_start_user_id');
+    const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+    if (!userId && !usuarioActual) return;
+
+    try {
+      const res = await fetch('/api/ranking');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ranking && Array.isArray(data.ranking)) {
+          const usuario = data.ranking.find(u => u.id == userId || u.nickname === usuarioActual);
+          if (usuario) {
+            this.puntosDisponibles = usuario.puntos_totales;
+            this.guardarDatos();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener el saldo de Aiven MySQL");
+    }
+  },
+
+  guardarDatos() {
+    localStorage.setItem(this.STORAGE_PUNTOS, this.puntosDisponibles.toString());
+    localStorage.setItem(this.STORAGE_INVENTARIO, JSON.stringify(this.inventario));
+    this.actualizarUI();
+  },
+
+  actualizarUI() {
+    const spanMenu = document.getElementById("tienda-puntos-menu");
+    if (spanMenu) spanMenu.innerText = this.puntosDisponibles;
+
+    const spanShop = document.getElementById("shop-points-display");
+    if (spanShop) spanShop.innerText = this.puntosDisponibles;
+
+    const cantMitad = document.getElementById("shop-cant-mitad");
+    if (cantMitad) cantMitad.innerText = this.inventario.mitad || 0;
+
+    const cantEscudo = document.getElementById("shop-cant-escudo");
+    if (cantEscudo) cantEscudo.innerText = this.inventario.escudo || 0;
+
+    const cantSaltar = document.getElementById("shop-cant-saltar");
+    if (cantSaltar) cantSaltar.innerText = this.inventario.saltar || 0;
+
+    const cantDoble = document.getElementById("shop-cant-doble");
+    if (cantDoble) cantDoble.innerText = this.inventario.doble || 0;
+  },
+
+  async comprarItem(itemKey) {
+    const precio = this.PRECIOS[itemKey];
+    if (!precio) return false;
+
+    if (this.puntosDisponibles < precio) {
+      alert("¡No tienes suficientes puntos!");
+      return false;
+    }
+
+    const userId = localStorage.getItem('press_start_user_id');
+    const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+
+    try {
+      const res = await fetch('/api/tienda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId ? parseInt(userId, 10) : null,
+          nickname: usuarioActual,
+          costo: precio
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.exito) {
+        this.puntosDisponibles = data.puntosTotales;
+        this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
+        this.guardarDatos();
+
+        if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
+          Sonidos.playCompra();
+        }
+        return true;
+      } else {
+        alert(data.error || "No se pudo procesar la compra.");
+        return false;
+      }
+    } catch (e) {
+      console.error("Error conectando con /api/tienda:", e);
+      this.puntosDisponibles -= precio;
+      this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
+      this.guardarDatos();
+      return true;
+    }
+  },
+
+  usarItem(itemKey) {
+    if (this.inventario[itemKey] && this.inventario[itemKey] > 0) {
+      this.inventario[itemKey]--;
+      this.guardarDatos();
+      return true;
+    }
+    return false;
   }
+};
 
-  const { userId, nickname, costo } = req.body;
+window.abrirTienda = function() {
+  window.location.href = "tienda.html";
+};
 
-  if (!costo || costo <= 0) {
-    return res.status(400).json({ error: 'Costo inválido' });
-  }
+window.cerrarTienda = function() {
+  window.location.href = "index.html";
+};
 
-  try {
-    // 1. Verificar puntos actuales en Aiven MySQL
-    let selectQuery = 'SELECT puntos_totales FROM usuarios WHERE id = ?';
-    let params = [userId];
+window.comprarComodin = function(tipo) {
+  Tienda.comprarItem(tipo);
+};
 
-    if (!userId && nickname) {
-      selectQuery = 'SELECT puntos_totales FROM usuarios WHERE nickname = ?';
-      params = [nickname];
-    }
-
-    const [rows] = await pool.query(selectQuery, params);
-
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    const puntosActuales = rows[0].puntos_totales || 0;
-
-    if (puntosActuales < costo) {
-      return res.status(400).json({ exito: false, error: 'Puntos insuficientes' });
-    }
-
-    // 2. Restar el costo del comodín
-    const nuevosPuntos = puntosActuales - costo;
-    let updateQuery = 'UPDATE usuarios SET puntos_totales = ? WHERE id = ?';
-    if (!userId && nickname) {
-      updateQuery = 'UPDATE usuarios SET puntos_totales = ? WHERE nickname = ?';
-    }
-
-    await pool.query(updateQuery, [nuevosPuntos, params[0]]);
-
-    return res.status(200).json({
-      exito: true,
-      puntosTotales: nuevosPuntos
-    });
-
-  } catch (error) {
-    console.error('Error en /api/tienda:', error);
-    return res.status(500).json({ error: 'Error al procesar la compra en MySQL' });
-  }
-}
+document.addEventListener("DOMContentLoaded", () => {
+  Tienda.init();
+});
