@@ -5,7 +5,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Método no permitido' });
     }
 
-    const { userId, nickname, puntosObtenidos, categoriaId } = req.body;
+    const { userId, nickname, puntosObtenidos, categoriaId, dificultad } = req.body;
 
     if (!userId && !nickname) {
         return res.status(400).json({ error: 'Falta identificación de usuario' });
@@ -13,10 +13,11 @@ export default async function handler(req, res) {
 
     try {
         const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
-        const idCategoria = parseInt(categoriaId, 10) || 1; 
+        const idCategoria = parseInt(categoriaId, 10) || 1;
+        const difTexto = (dificultad || 'facil').toLowerCase();
         let idUsuario = userId ? parseInt(userId, 10) : null;
 
-        // Si no viene ID, buscar por el nickname del usuario en MySQL
+        // Buscar el usuario por nickname si no vino el ID
         if (!idUsuario && nickname) {
             const [users] = await dbPool.execute(
                 'SELECT id FROM press_start_quiz.usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
@@ -31,19 +32,19 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado en la BD' });
         }
 
-        // 1. Update de puntos acumulados en MySQL Aiven
+        // 1. Sumar los puntos en el total del usuario en MySQL Aiven
         await dbPool.execute(
             'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntosASumar, idUsuario]
         );
 
-        // 2. Registro de la partida con categoria_id
+        // 2. Insertar en la tabla partidas enviando usuario_id, categoria_id, dificultad y puntaje_obtenido
         await dbPool.execute(
-            'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, puntaje_obtenido) VALUES (?, ?, ?)',
-            [idUsuario, idCategoria, puntosASumar]
+            'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido) VALUES (?, ?, ?, ?)',
+            [idUsuario, idCategoria, difTexto, puntosASumar]
         );
 
-        // 3. Traer el total acumulado de la base de datos
+        // 3. Traer los puntos acumulados totales
         const [rows] = await dbPool.execute(
             'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
             [idUsuario]

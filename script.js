@@ -92,13 +92,13 @@ async function obtenerPuntosUsuario() {
 function refrescarUIConPuntos(puntos) {
     const ptsNum = parseInt(puntos, 10) || 0;
 
-    // Sincronizar el objeto Tienda global y guardar en localStorage
+    // Sincronizar el objeto Tienda global
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
         Tienda.guardarDatos();
     }
 
-    // Actualizar el menú principal
+    // Actualizar el botón del menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = ptsNum;
@@ -139,7 +139,6 @@ async function guardarPuntosEnBD(puntajeObtenido) {
     
     if (puntajeObtenido <= 0) return;
 
-    // Determinar la categoría según el género seleccionado
     const genreLower = (selectedGenre || "").toLowerCase();
     let catId = 1;
     if (genreLower.includes("rpg")) catId = 2;
@@ -156,6 +155,7 @@ async function guardarPuntosEnBD(puntajeObtenido) {
                 userId: userId ? parseInt(userId, 10) : null,
                 nickname: usuarioActual,
                 categoriaId: catId,
+                dificultad: selectedLevel || "Fácil",
                 puntosObtenidos: puntajeObtenido
             })
         });
@@ -317,7 +317,7 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // Guardar los puntos ganados en Aiven MySQL en tiempo real
+        // Guardar puntos en Aiven MySQL al acertar
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
