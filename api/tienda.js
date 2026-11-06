@@ -78,20 +78,53 @@ const Tienda = {
     if (hudDoble) hudDoble.innerText = this.inventario.doble || 0;
   },
 
-  comprarItem(itemKey) {
+  async comprarItem(itemKey) {
     const precio = this.PRECIOS[itemKey];
-    if (precio && this.puntosDisponibles >= precio) {
+    if (!precio) return false;
+
+    if (this.puntosDisponibles < precio) {
+      alert("¡No tienes suficientes puntos!");
+      return false;
+    }
+
+    const userId = localStorage.getItem('press_start_user_id');
+    const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+
+    try {
+      // 1. Enviar petición para descontar en Aiven MySQL
+      const res = await fetch('/api/tienda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId ? parseInt(userId, 10) : null,
+          nickname: usuarioActual,
+          costo: precio
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.exito) {
+        // 2. Sincronizar el saldo devuelto por Aiven MySQL
+        this.puntosDisponibles = data.puntosTotales;
+        this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
+        this.guardarDatos();
+
+        if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
+          Sonidos.playCompra();
+        }
+        return true;
+      } else {
+        alert(data.error || "No se pudo procesar la compra en la base de datos.");
+        return false;
+      }
+    } catch (e) {
+      console.error("Error conectando con /api/tienda:", e);
+      // Fallback local por si acaso
       this.puntosDisponibles -= precio;
       this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
       this.guardarDatos();
-
-      if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
-        Sonidos.playCompra();
-      }
       return true;
-    } else {
-      alert("¡No tienes suficientes puntos!");
-      return false;
     }
   },
 
