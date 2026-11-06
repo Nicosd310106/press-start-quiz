@@ -5,7 +5,7 @@ let currentIndex = 0;
 let score = 0;
 let nivelActualLabel = "";
 
-// Modificadores activos
+// Modificadores activos por comodín
 let multiplicadorPuntos = 1;
 let escudoActivo = false;
 
@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Sesión activa para:", usuarioActual);
 
-        // Cargar los puntos del usuario desde la BD al arrancar
         obtenerPuntosUsuario();
 
         // Selección de género
@@ -92,19 +91,16 @@ async function obtenerPuntosUsuario() {
 function refrescarUIConPuntos(puntos) {
     const ptsNum = parseInt(puntos, 10) || 0;
 
-    // Sincronizar el objeto Tienda global
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
         Tienda.guardarDatos();
     }
 
-    // Actualizar el botón del menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = ptsNum;
     }
 
-    // Actualizar la pantalla de la Tienda
     const shopPointsDisp = document.getElementById("shop-points-display");
     if (shopPointsDisp) {
         shopPointsDisp.innerText = ptsNum;
@@ -296,6 +292,10 @@ function loadQuestion() {
             container.appendChild(btn);
         });
     }
+
+    if (typeof Tienda !== "undefined") {
+        Tienda.actualizarUI();
+    }
 }
 
 function checkAnswer(index, q) {
@@ -312,12 +312,11 @@ function checkAnswer(index, q) {
     if (esCorrecta) {
         const puntosGanados = (10 * multiplicadorPuntos);
         score += puntosGanados;
-        multiplicadorPuntos = 1;
+        multiplicadorPuntos = 1; // Resetea el multiplicador tras usarse
 
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // Guardar puntos en Aiven MySQL al acertar
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
@@ -349,6 +348,78 @@ function checkAnswer(index, q) {
     }
 }
 
+// -------------------------------------------------------------
+// LÓGICA DE EJECUCIÓN DE COMODINES EN PARTIDA
+// -------------------------------------------------------------
+function usarComodin(tipo) {
+    if (typeof Tienda === "undefined") return;
+
+    // Verificar si el jugador posee el comodín
+    if (!Tienda.inventario[tipo] || Tienda.inventario[tipo] <= 0) {
+        alert("¡No tienes este comodín en tu inventario! Cómpralo en la Tienda.");
+        return;
+    }
+
+    const q = bancoMezclado[currentIndex];
+    if (!q) return;
+
+    if (tipo === 'mitad') {
+        // COMODÍN 50/50: Elimina 2 opciones incorrectas del DOM
+        const container = document.getElementById("options-container");
+        if (!container) return;
+        const botones = Array.from(container.querySelectorAll("button"));
+        
+        const opciones = q.opciones || q.options;
+        let eliminadas = 0;
+
+        botones.forEach((btn, idx) => {
+            const opt = opciones[idx];
+            let esCorrecta = false;
+            if (typeof opt === 'object') {
+                esCorrecta = (opt.es_correcta === 1 || opt.es_correcta === true);
+            } else {
+                esCorrecta = (idx === q.correct);
+            }
+
+            if (!esCorrecta && eliminadas < 2) {
+                btn.style.visibility = "hidden"; // Oculta la opción incorrecta
+                eliminadas++;
+            }
+        });
+
+        Tienda.usarItem('mitad');
+
+    } else if (tipo === 'escudo') {
+        // COMODÍN ESCUDO: Te perdona un fallo en la ronda
+        escudoActivo = true;
+        Tienda.usarItem('escudo');
+        alert("🛡️ ¡Escudo activado! Te protegerá en tu siguiente fallo.");
+
+    } else if (tipo === 'saltar') {
+        // COMODÍN SALTAR: Pasa de pregunta sin perder
+        Tienda.usarItem('saltar');
+        currentIndex++;
+        if (currentIndex < bancoMezclado.length) {
+            loadQuestion();
+        } else {
+            const quizArea = document.getElementById("quiz");
+            if (quizArea) {
+                quizArea.innerHTML = `
+                    <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
+                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
+                    <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+                `;
+            }
+        }
+
+    } else if (tipo === 'doble') {
+        // COMODÍN x2 PTS: Duplica el puntaje del siguiente acierto
+        multiplicadorPuntos = 2;
+        Tienda.usarItem('doble');
+        alert("✨ ¡Doble puntuación activada para el próximo acierto!");
+    }
+}
+
 async function volverAlMenu() {
     score = 0;
     currentIndex = 0;
@@ -372,7 +443,6 @@ async function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    // Recargar puntos y ranking al volver al menú
     await obtenerPuntosUsuario();
     await cargarRanking();
 }
