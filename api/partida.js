@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
         let idUsuario = userId ? parseInt(userId, 10) : null;
 
-        // Si no viene ID, buscar en MySQL por el nickname del usuario
+        // Si no se envió ID, buscar por nickname en la base de datos de Aiven
         if (!idUsuario && nickname) {
             const [users] = await dbPool.execute(
                 'SELECT id FROM press_start_quiz.usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
@@ -36,13 +36,13 @@ export default async function handler(req, res) {
             [puntosASumar, idUsuario]
         );
 
-        // 2. Insertar historial de la partida
+        // 2. Insertar en el historial de partidas
         await dbPool.execute(
             'INSERT INTO press_start_quiz.partidas (usuario_id, puntaje_obtenido) VALUES (?, ?)',
             [idUsuario, puntosASumar]
         );
 
-        // 3. Traer el total real de puntos actualizado desde la BD
+        // 3. Traer los puntos acumulados totales
         const [rows] = await dbPool.execute(
             'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
             [idUsuario]

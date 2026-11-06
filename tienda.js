@@ -5,10 +5,10 @@
 const Tienda = {
   puntosDisponibles: 0,
   inventario: {
-    mitad: 0,   // Quita 2 opciones incorrectas (50/50)
-    escudo: 0,  // Perdona 1 fallo
-    saltar: 0,  // Cambia de pregunta sin perder
-    doble: 0    // Duplica los puntos de la siguiente
+    mitad: 0,
+    escudo: 0,
+    saltar: 0,
+    doble: 0
   },
   
   PRECIOS: {
@@ -47,14 +47,12 @@ const Tienda = {
   },
 
   actualizarUI() {
-    // Actualizar puntos en el menú principal y dentro de la tienda
     const spanMenu = document.getElementById("tienda-puntos-menu");
     if (spanMenu) spanMenu.innerText = this.puntosDisponibles;
 
     const spanShop = document.getElementById("shop-points-display");
     if (spanShop) spanShop.innerText = this.puntosDisponibles;
 
-    // Actualizar cantidades de comodines dentro de la tienda
     const cantMitad = document.getElementById("shop-cant-mitad");
     if (cantMitad) cantMitad.innerText = this.inventario.mitad || 0;
 
@@ -67,7 +65,6 @@ const Tienda = {
     const cantDoble = document.getElementById("shop-cant-doble");
     if (cantDoble) cantDoble.innerText = this.inventario.doble || 0;
 
-    // Actualizar HUD del juego si está en partida
     const hudMitad = document.getElementById("cant-mitad");
     if (hudMitad) hudMitad.innerText = this.inventario.mitad || 0;
 
@@ -108,9 +105,6 @@ const Tienda = {
   }
 };
 
-// -------------------------------------------------------------
-// FUNCIONES GLOBALES QUE INVOCA EL HTML (index.html)
-// -------------------------------------------------------------
 function abrirTienda() {
   const genreSel = document.getElementById("genre-selection");
   const shopScreen = document.getElementById("shop-screen");

@@ -98,7 +98,7 @@ function refrescarUIConPuntos(puntos) {
         Tienda.guardarDatos();
     }
 
-    // Actualizar el span del botón del menú principal
+    // Actualizar el span del menú principal
     const tiendaPtsSpan = document.getElementById("tienda-puntos-menu");
     if (tiendaPtsSpan) {
         tiendaPtsSpan.innerText = ptsNum;
@@ -312,7 +312,7 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // Guardar puntos en Aiven MySQL en tiempo real al acertar
+        // GUARDADO EN TIEMPO REAL: Se envían los puntos acertados a Aiven MySQL
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
@@ -367,7 +367,7 @@ async function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    // Reconsultar puntos y ranking al volver al menú
+    // Recargar inmediatamente puntos y ranking al volver
     await obtenerPuntosUsuario();
     await cargarRanking();
 }
