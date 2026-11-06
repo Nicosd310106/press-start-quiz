@@ -140,21 +140,24 @@ async function cargarRanking() {
 
 async function guardarPuntosEnBD(puntajeObtenido) {
     const userId = localStorage.getItem('press_start_user_id');
-    if (!userId || puntajeObtenido <= 0) return;
+    const usuarioActual = localStorage.getItem('press_start_usuario_actual');
+    
+    if (puntajeObtenido <= 0) return;
 
     try {
         const res = await fetch('/api/partida', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: parseInt(userId, 10),
+                userId: userId ? parseInt(userId, 10) : null,
+                nickname: usuarioActual,
                 puntosObtenidos: puntajeObtenido
             })
         });
 
         if (res.ok) {
             const data = await res.json();
-            console.log("Puntos guardados con éxito en MySQL:", data);
+            console.log("Puntos sincronizados en Aiven:", data);
 
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
@@ -309,7 +312,7 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
-        // GUARDADO EN TIEMPO REAL AL ACERTAR
+        // Guardar puntos en Aiven MySQL en tiempo real al acertar
         guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
@@ -364,7 +367,7 @@ async function volverAlMenu() {
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
-    // Recargar inmediatamente puntos y ranking al volver
+    // Reconsultar puntos y ranking al volver al menú
     await obtenerPuntosUsuario();
     await cargarRanking();
 }
