@@ -5,6 +5,9 @@ let currentIndex = 0;
 let score = 0;
 let nivelActualLabel = "";
 
+// Puntos acumulados en la partida actual pendientes de confirmación
+let puntosPartidaPendientes = 0;
+
 // Modificadores activos por comodín
 let multiplicadorPuntos = 1;
 let escudoActivo = false;
@@ -53,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".btn-difficulty").forEach(btn => {
             btn.addEventListener("click", () => {
                 if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
-                selectedLevel = btn.getAttribute("data-level");
+                selectedLevel = btn.getAttribute("data-level") || btn.innerText;
                 nivelActualLabel = `${selectedGenre} - ${selectedLevel}`;
                 iniciarQuiz(selectedGenre, selectedLevel);
             });
@@ -161,8 +164,6 @@ async function guardarPuntosEnBD(puntajeObtenido) {
 
         if (res.ok) {
             const data = await res.json();
-            console.log("Puntos sincronizados en Aiven:", data);
-
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
             } else {
@@ -231,6 +232,7 @@ async function fetchPreguntasBD(genre, level) {
 async function iniciarQuiz(genre, level) {
     score = 0;
     currentIndex = 0;
+    puntosPartidaPendientes = 0;
     multiplicadorPuntos = 1;
     escudoActivo = false;
 
@@ -328,14 +330,22 @@ function checkAnswer(index, q) {
     if (esCorrecta) {
         if (typeof Sonidos !== "undefined" && typeof Sonidos.playAcierto === "function") Sonidos.playAcierto();
 
-        const puntosGanados = (10 * multiplicadorPuntos);
+        let puntosBase = 20; // Fácil o Modo Infinito
+        const diffLower = (selectedLevel || "").toLowerCase();
+
+        if (diffLower.includes("media") || diffLower.includes("medio")) {
+            puntosBase = 40;
+        } else if (diffLower.includes("difícil") || diffLower.includes("dificil")) {
+            puntosBase = 80;
+        }
+
+        const puntosGanados = (puntosBase * multiplicadorPuntos);
         score += puntosGanados;
+        puntosPartidaPendientes += puntosGanados;
         multiplicadorPuntos = 1;
 
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
-
-        guardarPuntosEnBD(puntosGanados);
 
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
@@ -436,11 +446,40 @@ function usarComodin(tipo) {
     }
 }
 
-async function volverAlMenu() {
+// MUESTRA EL MODAL AL VOLVER AL MENÚ
+function volverAlMenu() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+
+    if (puntosPartidaPendientes > 0) {
+        const modal = document.getElementById("modal-guardar-progreso");
+        const texto = document.getElementById("modal-puntos-texto");
+        if (texto) texto.innerText = `Ganaste ${puntosPartidaPendientes} puntos en esta partida.`;
+        if (modal) {
+            modal.style.display = "flex";
+            return;
+        }
+    }
+    ejecutarSalidaAlMenu();
+}
+
+// ACCIÓN DE LOS BOTONES SÍ / NO DEL MODAL
+async function confirmarGuardado(deseaGuardar) {
+    const modal = document.getElementById("modal-guardar-progreso");
+    if (modal) modal.style.display = "none";
+
+    if (deseaGuardar && puntosPartidaPendientes > 0) {
+        await guardarPuntosEnBD(puntosPartidaPendientes);
+    }
+
+    puntosPartidaPendientes = 0;
+    ejecutarSalidaAlMenu();
+}
+
+async function ejecutarSalidaAlMenu() {
     score = 0;
     currentIndex = 0;
     bancoMezclado = [];
+    puntosPartidaPendientes = 0;
 
     const gameEl = document.getElementById("game");
     const gameOverScreen = document.getElementById("game-over-screen");

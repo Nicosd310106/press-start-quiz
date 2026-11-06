@@ -199,6 +199,18 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP PARA CONFIRMAR GUARDADO DE PROGRESO -->
+    <div id="modal-guardar-progreso" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center;">
+      <div style="background: #120924; border: 3px solid #ff007f; box-shadow: 0 0 20px #ff007f; padding: 25px; border-radius: 12px; text-align: center; max-width: 320px; width: 90%;">
+        <h3 style="color: #00feff; margin-bottom: 15px; font-family: monospace;">¿Quieres guardar el progreso?</h3>
+        <p id="modal-puntos-texto" style="color: #fff; margin-bottom: 20px;">Ganaste X puntos en esta ronda.</p>
+        <div style="display: flex; justify-content: space-around;">
+          <button class="btn-option" style="width: 45%; background: #00feff; color: #000; font-weight: bold;" onclick="confirmarGuardado(true)">SÍ</button>
+          <button class="btn-option" style="width: 45%; background: #ff003c; color: #fff; font-weight: bold;" onclick="confirmarGuardado(false)">NO</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Carga defensiva y ordenada de scripts -->
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script src="tienda.js" onerror="console.warn('tienda.js no cargado')"></script>
