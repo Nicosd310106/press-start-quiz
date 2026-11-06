@@ -274,22 +274,35 @@ function loadQuestion() {
     const q = bancoMezclado[currentIndex];
 
     const qEl = document.getElementById("question");
-    const container = document.getElementById("options-container");
+    const container = document.getElementById("options-container") || document.getElementById("quiz");
 
     const enunciado = q.enunciado || q.q;
     const opciones = q.opciones || q.options;
 
     if (qEl) qEl.innerText = enunciado;
-    if (container) {
-        container.innerHTML = "";
+
+    const optionsGrid = document.getElementById("options-container");
+    if (optionsGrid) {
+        optionsGrid.innerHTML = "";
         opciones.forEach((opt, i) => {
             const btn = document.createElement("button");
             const textoOpt = typeof opt === 'object' ? opt.texto_opcion : opt;
             btn.innerText = textoOpt;
             btn.className = "btn-option";
+            btn.style.display = "block";
             btn.dataset.index = i;
             btn.onclick = () => checkAnswer(i, q);
-            container.appendChild(btn);
+            optionsGrid.appendChild(btn);
+        });
+    } else if (container) {
+        const botonesExistentes = container.querySelectorAll(".btn-option");
+        botonesExistentes.forEach((btn, i) => {
+            if (opciones[i]) {
+                const textoOpt = typeof opciones[i] === 'object' ? opciones[i].texto_opcion : opciones[i];
+                btn.innerText = textoOpt;
+                btn.style.display = "block";
+                btn.onclick = () => checkAnswer(i, q);
+            }
         });
     }
 
@@ -312,7 +325,7 @@ function checkAnswer(index, q) {
     if (esCorrecta) {
         const puntosGanados = (10 * multiplicadorPuntos);
         score += puntosGanados;
-        multiplicadorPuntos = 1; // Resetea el multiplicador tras usarse
+        multiplicadorPuntos = 1;
 
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
@@ -348,13 +361,10 @@ function checkAnswer(index, q) {
     }
 }
 
-// -------------------------------------------------------------
-// LÓGICA DE EJECUCIÓN DE COMODINES EN PARTIDA
-// -------------------------------------------------------------
+// LÓGICA DE COMODINES DE PARTIDA (50/50, Escudo, Saltar y x2 Pts)
 function usarComodin(tipo) {
     if (typeof Tienda === "undefined") return;
 
-    // Verificar si el jugador posee el comodín
     if (!Tienda.inventario[tipo] || Tienda.inventario[tipo] <= 0) {
         alert("¡No tienes este comodín en tu inventario! Cómpralo en la Tienda.");
         return;
@@ -364,17 +374,17 @@ function usarComodin(tipo) {
     if (!q) return;
 
     if (tipo === 'mitad') {
-        // COMODÍN 50/50: Elimina 2 opciones incorrectas del DOM
-        const container = document.getElementById("options-container");
+        const container = document.getElementById("options-container") || document.getElementById("quiz");
         if (!container) return;
-        const botones = Array.from(container.querySelectorAll("button"));
-        
+
+        const botones = Array.from(container.querySelectorAll(".btn-option"));
         const opciones = q.opciones || q.options;
         let eliminadas = 0;
 
         botones.forEach((btn, idx) => {
             const opt = opciones[idx];
             let esCorrecta = false;
+            
             if (typeof opt === 'object') {
                 esCorrecta = (opt.es_correcta === 1 || opt.es_correcta === true);
             } else {
@@ -382,7 +392,7 @@ function usarComodin(tipo) {
             }
 
             if (!esCorrecta && eliminadas < 2) {
-                btn.style.visibility = "hidden"; // Oculta la opción incorrecta
+                btn.style.display = "none";
                 eliminadas++;
             }
         });
@@ -390,13 +400,11 @@ function usarComodin(tipo) {
         Tienda.usarItem('mitad');
 
     } else if (tipo === 'escudo') {
-        // COMODÍN ESCUDO: Te perdona un fallo en la ronda
         escudoActivo = true;
         Tienda.usarItem('escudo');
-        alert("🛡️ ¡Escudo activado! Te protegerá en tu siguiente fallo.");
+        alert("🛡️ ¡Escudo activado! Te protegerá en tu siguiente error.");
 
     } else if (tipo === 'saltar') {
-        // COMODÍN SALTAR: Pasa de pregunta sin perder
         Tienda.usarItem('saltar');
         currentIndex++;
         if (currentIndex < bancoMezclado.length) {
@@ -413,7 +421,6 @@ function usarComodin(tipo) {
         }
 
     } else if (tipo === 'doble') {
-        // COMODÍN x2 PTS: Duplica el puntaje del siguiente acierto
         multiplicadorPuntos = 2;
         Tienda.usarItem('doble');
         alert("✨ ¡Doble puntuación activada para el próximo acierto!");
