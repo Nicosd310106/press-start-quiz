@@ -1,7 +1,6 @@
-import pool from './db.js';
+import { dbPool } from './db.js';
 
 export default async function handler(req, res) {
-  // Solo permitir solicitudes GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -9,7 +8,6 @@ export default async function handler(req, res) {
   try {
     const { categoria_id, dificultad } = req.query;
 
-    // Construcción dinámica de la consulta SQL
     let query = `
       SELECT 
         p.id AS pregunta_id,
@@ -42,8 +40,7 @@ export default async function handler(req, res) {
 
     query += ' ORDER BY RAND()';
 
-    // Ejecución de la consulta en Aiven MySQL
-    const [rows] = await pool.query(query, params);
+    const [rows] = await dbPool.query(query, params);
 
     if (!rows || rows.length === 0) {
       return res.status(200).json({ 
@@ -53,7 +50,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Agrupar las opciones por pregunta para formatear la respuesta JSON
     const preguntasMap = new Map();
 
     rows.forEach(row => {
@@ -85,7 +81,8 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error en /api/preguntas:', error);
     return res.status(500).json({ 
-      error: 'Error al consultar las preguntas en la base de datos MySQL' 
+      error: 'Error al consultar las preguntas en la base de datos MySQL',
+      detalle: error.message 
     });
   }
 }

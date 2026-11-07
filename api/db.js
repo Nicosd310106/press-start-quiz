@@ -20,3 +20,6 @@ export const dbPool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+
+// Exportación por defecto para evitar errores de importación
+export default dbPool;
