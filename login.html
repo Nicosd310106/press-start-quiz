@@ -186,18 +186,25 @@
             const alertBox = document.getElementById('alert-box');
 
             try {
-                // Ruta corregida a /api/usuarios/login
-                const response = await fetch('/api/usuarios/login', {
+                // RUTA CORREGIDA: Apuntar directamente a /api/login
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nickname: user, password: pass })
                 });
 
-                const data = await response.json();
+                // Lectura segura para evitar el SyntaxError si la respuesta no fuera JSON
+                const rawText = await response.text();
+                let data = {};
+                try {
+                    data = JSON.parse(rawText);
+                } catch (jsonErr) {
+                    console.error("Respuesta del servidor no es JSON válido:", rawText);
+                }
 
-                if (response.ok) {
-                    localStorage.setItem('press_start_usuario_actual', data.nickname);
-                    localStorage.setItem('press_start_user_id', data.userId);
+                if (response.ok && (data.userId || data.nickname)) {
+                    localStorage.setItem('press_start_usuario_actual', data.nickname || user);
+                    if (data.userId) localStorage.setItem('press_start_user_id', data.userId);
 
                     if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
 

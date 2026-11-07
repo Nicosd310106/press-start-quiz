@@ -11,10 +11,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Debes ingresar usuario y contraseña' });
     }
 
+    // Limpieza defensiva de espacios del teclado
     const nickClean = String(nickname).trim();
     const passClean = String(password).trim();
 
     try {
+        // Consulta en Aiven MySQL ignorando mayúsculas y espacios
         const [rows] = await pool.execute(
             'SELECT id, nickname, password_hash, puntos_totales FROM usuarios WHERE LOWER(TRIM(nickname)) = LOWER(?)',
             [nickClean.toLowerCase()]
@@ -25,12 +27,13 @@ export default async function handler(req, res) {
         }
 
         const usuario = rows[0];
-
         const passBD = String(usuario.password_hash).trim();
+
         if (passBD !== passClean) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
 
+        // Respuesta exitosa formateada en JSON
         return res.status(200).json({
             mensaje: 'Inicio de sesión exitoso',
             userId: usuario.id,
