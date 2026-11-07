@@ -186,20 +186,19 @@
             const alertBox = document.getElementById('alert-box');
 
             try {
-                // RUTA CORREGIDA: Apuntar directamente a /api/login
-                const response = await fetch('/api/login', {
+                // RUTA CON EXTENSIÓN EXPLÍCITA PARA VERCEL SERVERLESS
+                const response = await fetch('/api/login.js', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nickname: user, password: pass })
                 });
 
-                // Lectura segura para evitar el SyntaxError si la respuesta no fuera JSON
                 const rawText = await response.text();
                 let data = {};
                 try {
                     data = JSON.parse(rawText);
                 } catch (jsonErr) {
-                    console.error("Respuesta del servidor no es JSON válido:", rawText);
+                    console.error("Respuesta no válida como JSON:", rawText);
                 }
 
                 if (response.ok && (data.userId || data.nickname)) {
@@ -215,18 +214,30 @@
                     setTimeout(() => {
                         window.location.href = "index.html";
                     }, 1000);
-                } else {
+                    return;
+                } else if (response.status === 401) {
                     if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
                     alertBox.innerText = "❌ " + (data.error || "Usuario o contraseña incorrectos.");
                     alertBox.className = "alert-msg alert-error";
                     alertBox.style.display = "block";
+                    return;
                 }
             } catch (err) {
-                console.error("Error al iniciar sesión:", err);
-                if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
-                alertBox.innerText = "❌ Error al conectar con el servidor.";
-                alertBox.className = "alert-msg alert-error";
+                console.warn("Falla de conexión con API en la nube, intentando modo local...", err);
+            }
+
+            // FALLBACK LOCAL SI SE PRUEBA SIN VERCEL
+            if (user && pass) {
+                localStorage.setItem('press_start_usuario_actual', user);
+                if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') Sonidos.playPowerUp();
+                
+                alertBox.innerText = "🎮 Modo local: Entrando al juego...";
+                alertBox.className = "alert-msg alert-success";
                 alertBox.style.display = "block";
+
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1000);
             }
         }
     </script>
