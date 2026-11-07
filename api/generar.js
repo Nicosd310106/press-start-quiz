@@ -1,29 +1,28 @@
-import { dbPool } from './db.js';
+import pool from './db.js';
 
 export default async function handler(req, res) {
-    // Permitir solicitudes GET y POST (soluciona error 405 en GitHub Pages)
     if (req.method !== 'POST' && req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
 
     const genre = req.method === 'POST' ? req.body.genre : req.query.genre;
     const level = req.method === 'POST' ? req.body.level : req.query.level;
+    const generoBuscado = genre || 'Acción y Aventura';
 
     try {
-        // 1. Intentar buscar preguntas guardadas en la base de datos MySQL (reutilización)
-        const [preguntasBD] = await dbPool.execute(
+        // 1. Buscar preguntas guardadas asociadas al género solicitado
+        const [preguntasBD] = await pool.execute(
             `SELECT p.id, p.enunciado AS q 
              FROM preguntas p 
              JOIN categorias c ON p.categoria_id = c.id 
-             WHERE c.nombre = ? AND p.dificultad = ? 
+             WHERE LOWER(c.nombre) LIKE LOWER(?) AND LOWER(p.dificultad) = LOWER(?) 
              ORDER BY RAND() LIMIT 10`,
-            [genre || 'Acción y Aventura', level || 'Fácil']
+            [`%${generoBuscado}%`, level || 'Fácil']
         );
 
         if (preguntasBD.length > 0) {
-            // Traer las opciones de las preguntas encontradas
             const preguntasCompletas = await Promise.all(preguntasBD.map(async (p) => {
-                const [opciones] = await dbPool.execute(
+                const [opciones] = await pool.execute(
                     'SELECT texto_opcion, es_correcta FROM opciones WHERE pregunta_id = ?',
                     [p.id]
                 );
@@ -41,16 +40,22 @@ export default async function handler(req, res) {
             return res.status(200).json(preguntasCompletas);
         }
 
-        // 2. Si no hay preguntas guardadas en MySQL, devolver un banco base estándar
-        const preguntasFallback = [
+        // 2. Banco Fallback clasificado según la categoría elegida (Evita cruces)
+        const bancosPorCategoria = {
+            "Deportes": [
+                { q: "¿En qué año se lanzó el primer FIFA de EA Sports?", options: ["1993", "1998", "2000", "1990"], correct: 0 },
+                { q: "¿Qué saga de fútbol arcade perteneció a Konami?", options: ["PES / Winning Eleven", "FIFA", "Virtua Striker", "Red Card"], correct: 0 }
+            ],
+            "Survival Horror": [
+                { q: "¿Qué estudio desarrolló originalmente la saga Silent Hill?", options: ["Capcom", "Team Silent (Konami)", "Shinra", "Square Enix"], correct: 1 },
+                { q: "¿En qué año se lanzó el primer Resident Evil?", options: ["1996", "1998", "2000", "1994"], correct: 0 }
+            ]
+        };
+
+        const preguntasFallback = bancosPorCategoria[generoBuscado] || [
             {
-                q: "¿Qué estudio desarrolló originalmente la saga Silent Hill?",
-                options: ["Capcom", "Team Silent (Konami)", "Shinra", "Square Enix"],
-                correct: 1
-            },
-            {
-                q: "¿En qué año se lanzó el primer Resident Evil?",
-                options: ["1996", "1998", "2000", "1994"],
+                q: `¿Pregunta referente al género de ${generoBuscado}?`,
+                options: ["Respuesta Correcta", "Opción B", "Opción C", "Opción D"],
                 correct: 0
             }
         ];
@@ -58,7 +63,7 @@ export default async function handler(req, res) {
         return res.status(200).json(preguntasFallback);
 
     } catch (error) {
-        console.error("Error al obtener o guardar preguntas:", error);
+        console.error("Error en /api/generar:", error);
         return res.status(500).json({ error: "Error en el servidor de preguntas", detalle: error.message });
     }
 }

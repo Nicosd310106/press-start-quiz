@@ -1,4 +1,4 @@
-import { dbPool } from './db.js';
+import pool from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -6,12 +6,18 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Consulta directa especificando el schema press_start_quiz para evitar fallas con defaultdb
-        const [rows] = await dbPool.execute(
-            'SELECT nickname, puntos_totales FROM press_start_quiz.usuarios ORDER BY puntos_totales DESC LIMIT 10'
+        // Asegurarnos de obtener la instancia del pool de conexiones
+        const connection = pool || (await import('./db.js')).dbPool;
+
+        // Consulta especificando la base de datos para Aiven MySQL
+        const [rows] = await connection.query(
+            'SELECT id, nickname, puntos_totales FROM usuarios ORDER BY puntos_totales DESC LIMIT 10'
         );
 
-        return res.status(200).json({ ranking: rows });
+        return res.status(200).json({ 
+            exito: true,
+            ranking: rows || [] 
+        });
     } catch (error) {
         console.error("Error al obtener el ranking:", error);
         return res.status(500).json({

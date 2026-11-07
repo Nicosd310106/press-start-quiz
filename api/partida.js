@@ -1,4 +1,4 @@
-import { dbPool } from './db.js';
+import pool from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -17,10 +17,9 @@ export default async function handler(req, res) {
         const difTexto = (dificultad || 'facil').toLowerCase();
         let idUsuario = userId ? parseInt(userId, 10) : null;
 
-        // Buscar el usuario por nickname si no vino el ID
         if (!idUsuario && nickname) {
-            const [users] = await dbPool.execute(
-                'SELECT id FROM press_start_quiz.usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
+            const [users] = await pool.execute(
+                'SELECT id FROM usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
                 [nickname, nickname]
             );
             if (users.length > 0) {
@@ -32,21 +31,21 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado en la BD' });
         }
 
-        // 1. Sumar los puntos en el total del usuario en MySQL Aiven
-        await dbPool.execute(
-            'UPDATE press_start_quiz.usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
+        // 1. Sumar los puntos en el acumulado del usuario
+        await pool.execute(
+            'UPDATE usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
             [puntosASumar, idUsuario]
         );
 
-        // 2. Insertar en la tabla partidas enviando usuario_id, categoria_id, dificultad y puntaje_obtenido
-        await dbPool.execute(
-            'INSERT INTO press_start_quiz.partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido) VALUES (?, ?, ?, ?)',
+        // 2. Registrar la partida efectuada
+        await pool.execute(
+            'INSERT INTO partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido) VALUES (?, ?, ?, ?)',
             [idUsuario, idCategoria, difTexto, puntosASumar]
         );
 
         // 3. Traer los puntos acumulados totales
-        const [rows] = await dbPool.execute(
-            'SELECT puntos_totales FROM press_start_quiz.usuarios WHERE id = ?',
+        const [rows] = await pool.execute(
+            'SELECT puntos_totales FROM usuarios WHERE id = ?',
             [idUsuario]
         );
 

@@ -148,11 +148,16 @@ async function guardarProgresoManual() {
     
     const genreLower = (selectedGenre || "").toLowerCase();
     let catId = 1;
-    if (genreLower.includes("rpg")) catId = 2;
-    else if (genreLower.includes("acción") || genreLower.includes("aventura")) catId = 3;
+    if (genreLower.includes("survival") || genreLower.includes("horror")) catId = 1;
+    else if (genreLower.includes("rpg")) catId = 2;
+    else if (genreLower.includes("acción") || genreLower.includes("accion") || genreLower.includes("aventura")) catId = 3;
     else if (genreLower.includes("shooter") || genreLower.includes("disparos")) catId = 4;
     else if (genreLower.includes("lucha") || genreLower.includes("peleas")) catId = 5;
     else if (genreLower.includes("plataforma")) catId = 6;
+    else if (genreLower.includes("estrategia")) catId = 7;
+    else if (genreLower.includes("simulación") || genreLower.includes("simulacion")) catId = 8;
+    else if (genreLower.includes("carreras")) catId = 9;
+    else if (genreLower.includes("deporte")) catId = 10;
 
     try {
         const res = await fetch('/api/partida', {
@@ -186,6 +191,7 @@ async function guardarProgresoManual() {
     }
 }
 
+// FIX CRÍTICO: Mapeo exhaustivo de las 10 categorías para evitar cruce de preguntas (e.g. Silent Hill en Deportes)
 async function fetchPreguntasBD(genre, level) {
     const genreLower = (genre || "").toLowerCase();
     let categoriaId = 1;
@@ -202,6 +208,14 @@ async function fetchPreguntasBD(genre, level) {
         categoriaId = 5;
     } else if (genreLower.includes("plataforma") || genreLower.includes("plataformas")) {
         categoriaId = 6;
+    } else if (genreLower.includes("estrategia")) {
+        categoriaId = 7;
+    } else if (genreLower.includes("simulación") || genreLower.includes("simulacion")) {
+        categoriaId = 8;
+    } else if (genreLower.includes("carreras")) {
+        categoriaId = 9;
+    } else if (genreLower.includes("deporte") || genreLower.includes("deportes")) {
+        categoriaId = 10;
     }
 
     const dificultadNormalizada = (level || "Fácil")
@@ -209,6 +223,7 @@ async function fetchPreguntasBD(genre, level) {
         .replace("á", "a")
         .replace("í", "i");
 
+    // 1. Intentar consulta a la BD MySQL en Aiven por categoria_id
     try {
         const response = await fetch(`/api/preguntas?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
         if (response.ok) {
@@ -218,9 +233,10 @@ async function fetchPreguntasBD(genre, level) {
             }
         }
     } catch (e) {
-        console.warn("API /api/preguntas no disponible...");
+        console.warn("API /api/preguntas no disponible o sin resultados...");
     }
 
+    // 2. Fallback de Generación con IA para el Modo Infinito o categorías sin stock directo en BD
     try {
         const responseAlt = await fetch("/api/generar", {
             method: "POST",
@@ -359,17 +375,26 @@ function checkAnswer(index, q) {
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
         currentIndex++;
-        if (currentIndex < bancoMezclado.length) {
+
+        // Precarga dinámica para Modo Infinito si nos quedamos sin preguntas en memoria
+        if (currentIndex >= bancoMezclado.length && (selectedLevel || "").toLowerCase().includes("infinito")) {
+            const loaderEl = document.getElementById("infinite-loader");
+            if (loaderEl) loaderEl.style.display = "block";
+
+            fetchPreguntasBD(selectedGenre, selectedLevel)
+                .then(nuevasPreguntas => {
+                    bancoMezclado = bancoMezclado.concat(nuevasPreguntas);
+                    if (loaderEl) loaderEl.style.display = "none";
+                    loadQuestion();
+                })
+                .catch(() => {
+                    if (loaderEl) loaderEl.style.display = "none";
+                    mostrarPantallaFinal();
+                });
+        } else if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            const quizArea = document.getElementById("quiz");
-            if (quizArea) {
-                quizArea.innerHTML = `
-                    <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
-                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
-                    <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
-                `;
-            }
+            mostrarPantallaFinal();
         }
     } else {
         if (escudoActivo) {
@@ -387,6 +412,17 @@ function checkAnswer(index, q) {
         if (gameOverScreen) gameOverScreen.style.display = "block";
         const scoreOver = document.getElementById("score-over");
         if (scoreOver) scoreOver.innerText = score;
+    }
+}
+
+function mostrarPantallaFinal() {
+    const quizArea = document.getElementById("quiz");
+    if (quizArea) {
+        quizArea.innerHTML = `
+            <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
+            <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
+            <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+        `;
     }
 }
 
@@ -440,14 +476,7 @@ function usarComodin(tipo) {
         if (currentIndex < bancoMezclado.length) {
             loadQuestion();
         } else {
-            const quizArea = document.getElementById("quiz");
-            if (quizArea) {
-                quizArea.innerHTML = `
-                    <h2 style="color: #00feff;">¡GG! RONDA SUPERADA</h2>
-                    <p style="font-size: 1.5rem;">Puntaje final: ${score}</p>
-                    <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
-                `;
-            }
+            mostrarPantallaFinal();
         }
 
     } else if (tipo === 'doble') {
@@ -470,7 +499,6 @@ async function volverAlMenu() {
     const menuEl = document.getElementById("menu");
     const genreSelection = document.getElementById("genre-selection");
     const diffSelection = document.getElementById("difficulty-selection");
-    const shopScreen = document.getElementById("shop-screen");
     const quizArea = document.getElementById("quiz");
 
     if (quizArea) {
@@ -481,7 +509,6 @@ async function volverAlMenu() {
     if (gameEl) gameEl.style.display = "none";
     if (gameOverScreen) gameOverScreen.style.display = "none";
     if (diffSelection) diffSelection.style.display = "none";
-    if (shopScreen) shopScreen.style.display = "none";
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
