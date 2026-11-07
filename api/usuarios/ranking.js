@@ -1,4 +1,4 @@
-import pool from './db.js';
+import { dbPool } from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -6,11 +6,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Asegurarnos de obtener la instancia del pool de conexiones
-        const connection = pool || (await import('./db.js')).dbPool;
-
-        // Consulta especificando la base de datos para Aiven MySQL
-        const [rows] = await connection.query(
+        const [rows] = await dbPool.query(
             'SELECT id, nickname, puntos_totales FROM usuarios ORDER BY puntos_totales DESC LIMIT 10'
         );
 
