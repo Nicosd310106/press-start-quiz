@@ -191,41 +191,33 @@ async function guardarProgresoManual() {
     }
 }
 
-// Consulta a la API backend con extensión .js y banco de preguntas reales por categoría
+// FIX MODO INFINITO: Normaliza la dificultad para consultar preguntas reales sin fallar en "Infinito" o "Todas"
 async function fetchPreguntasBD(genre, level) {
     const genreLower = (genre || "").toLowerCase();
     let categoriaId = 1;
 
-    if (genreLower.includes("survival") || genreLower.includes("horror")) {
-        categoriaId = 1;
-    } else if (genreLower.includes("rpg")) {
-        categoriaId = 2;
-    } else if (genreLower.includes("acción") || genreLower.includes("accion") || genreLower.includes("aventura")) {
-        categoriaId = 3;
-    } else if (genreLower.includes("shooter") || genreLower.includes("disparos")) {
-        categoriaId = 4;
-    } else if (genreLower.includes("lucha") || genreLower.includes("peleas")) {
-        categoriaId = 5;
-    } else if (genreLower.includes("plataforma") || genreLower.includes("plataformas")) {
-        categoriaId = 6;
-    } else if (genreLower.includes("estrategia")) {
-        categoriaId = 7;
-    } else if (genreLower.includes("simulación") || genreLower.includes("simulacion")) {
-        categoriaId = 8;
-    } else if (genreLower.includes("carreras")) {
-        categoriaId = 9;
-    } else if (genreLower.includes("deporte") || genreLower.includes("deportes")) {
-        categoriaId = 10;
+    if (genreLower.includes("survival") || genreLower.includes("horror")) categoriaId = 1;
+    else if (genreLower.includes("rpg")) categoriaId = 2;
+    else if (genreLower.includes("acción") || genreLower.includes("accion") || genreLower.includes("aventura")) categoriaId = 3;
+    else if (genreLower.includes("shooter") || genreLower.includes("disparos")) categoriaId = 4;
+    else if (genreLower.includes("lucha") || genreLower.includes("peleas")) categoriaId = 5;
+    else if (genreLower.includes("plataforma") || genreLower.includes("plataformas")) categoriaId = 6;
+    else if (genreLower.includes("estrategia")) categoriaId = 7;
+    else if (genreLower.includes("simulación") || genreLower.includes("simulacion")) categoriaId = 8;
+    else if (genreLower.includes("carreras")) categoriaId = 9;
+    else if (genreLower.includes("deporte") || genreLower.includes("deportes")) categoriaId = 10;
+
+    let dificultadNormalizada = (level || "Fácil").toLowerCase().replace("á", "a").replace("í", "i");
+    
+    // Si la dificultad es Infinito o Todas, no filtramos por dificultad en el parámetro
+    let queryUrl = `/api/preguntas.js?categoria_id=${categoriaId}`;
+    if (!dificultadNormalizada.includes("infinito") && !dificultadNormalizada.includes("todas")) {
+        queryUrl += `&dificultad=${dificultadNormalizada}`;
     }
 
-    const dificultadNormalizada = (level || "Fácil")
-        .toLowerCase()
-        .replace("á", "a")
-        .replace("í", "i");
-
-    // 1. Intentar consulta a la BD MySQL en Aiven por preguntas.js
+    // 1. Intentar consulta a la BD MySQL en Aiven
     try {
-        const response = await fetch(`/api/preguntas.js?categoria_id=${categoriaId}&dificultad=${dificultadNormalizada}`);
+        const response = await fetch(queryUrl);
         if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data.preguntas) && data.preguntas.length > 0) {
@@ -241,7 +233,7 @@ async function fetchPreguntasBD(genre, level) {
         const responseAlt = await fetch("/api/generar.js", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ genre, level, count: 5 })
+            body: JSON.stringify({ genre, level: "Fácil", count: 10 })
         });
         if (responseAlt.ok) {
             const dataAlt = await responseAlt.json();
@@ -253,8 +245,14 @@ async function fetchPreguntasBD(genre, level) {
         console.warn("Fallback /api/generar.js no respondió.");
     }
 
-    // 3. RESPALDO LOCAL CON PREGUNTAS Y OPCIONES REALES DE VIDEOJUEGOS
+    // 3. BANCO LOCAL GARANTIZADO CON PREGUNTAS Y RESPUESTAS REALES
     const bancosRespaldoLocal = {
+        "Acción y Aventura": [
+            { q: "¿Cómo se llama el explorador cazatesoros de la saga Uncharted?", options: ["Nathan Drake", "Lara Croft", "Arthur Morgan", "Kratos"], correct: 0 },
+            { q: "¿En qué videojuego encarnas a Kratos luchando contra dioses griegos y nórdicos?", options: ["God of War", "Devil May Cry", "Darksiders", "Bayonetta"], correct: 0 },
+            { q: "¿Cómo se llama la protagonista de la saga Tomb Raider?", options: ["Lara Croft", "Jill Valentine", "Ellie", "Aloy"], correct: 0 },
+            { q: "¿En qué franquicia viajas entre diferentes épocas históricas usando el Animus?", options: ["Assassin's Creed", "Prince of Persia", "Watch Dogs", "Dishonored"], correct: 0 }
+        ],
         "Survival Horror": [
             { q: "¿Qué estudio desarrolló originalmente la saga Silent Hill?", options: ["Capcom", "Team Silent (Konami)", "Shinra", "Square Enix"], correct: 1 },
             { q: "¿En qué año se lanzó el primer Resident Evil?", options: ["1996", "1998", "2000", "1994"], correct: 0 },
@@ -287,10 +285,6 @@ async function fetchPreguntasBD(genre, level) {
             { q: "¿Qué mapa emblemático pertenece a la saga Counter-Strike?", options: ["de_dust2", "Nuketown", "Wake Island", "Blood Gulch"], correct: 0 },
             { q: "¿Cómo se llama el héroe celestialmente apodado 'Master Chief'?", options: ["John-117", "Marcus Fenix", "Doom Slayer", "Gordon Freeman"], correct: 0 }
         ],
-        "Acción y Aventura": [
-            { q: "¿Cómo se llama el explorador cazatesoros de la saga Uncharted?", options: ["Nathan Drake", "Lara Croft", "Arthur Morgan", "Kratos"], correct: 0 },
-            { q: "¿En qué videojuego encarnas a Kratos luchando contra dioses griegos y nórdicos?", options: ["God of War", "Devil May Cry", "Darksiders", "Bayonetta"], correct: 0 }
-        ],
         "Plataformas": [
             { q: "¿En qué año se lanzó el icónico juego Super Mario Bros para NES?", options: ["1985", "1983", "1990", "1988"], correct: 0 },
             { q: "¿Qué marsupial naranja es la mascota clásica de las plataformas de PlayStation?", options: ["Crash Bandicoot", "Spyro", "Rayman", "Jak"], correct: 0 }
@@ -301,14 +295,13 @@ async function fetchPreguntasBD(genre, level) {
         ]
     };
 
-    // Buscar coincidencia en el banco local
     for (const key in bancosRespaldoLocal) {
         if (genreLower.includes(key.toLowerCase()) || key.toLowerCase().includes(genreLower)) {
             return bancosRespaldoLocal[key];
         }
     }
 
-    return bancosRespaldoLocal["Simulación"];
+    return bancosRespaldoLocal["Acción y Aventura"];
 }
 
 async function iniciarQuiz(genre, level) {
@@ -335,9 +328,9 @@ async function iniciarQuiz(genre, level) {
 
     quizArea.innerHTML = `
         <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
-        <h2 id="question">Cargando preguntas de la BD...</h2>
+        <h2 id="question">Cargando preguntas...</h2>
         <div id="options-container" class="options-grid">
-            <p style="text-align: center; color: #00feff; font-size: 1.1rem;">⚡ Conectando con la base de datos de Aiven... 🎮</p>
+            <p style="text-align: center; color: #00feff; font-size: 1.1rem;">⚡ Conectando con la base de datos... 🎮</p>
         </div>
     `;
 
