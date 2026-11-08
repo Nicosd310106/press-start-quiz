@@ -191,7 +191,7 @@ async function guardarProgresoManual() {
     }
 }
 
-// FIX CRÍTICO: Consulta a la API backend con extensión .js y fallback garantizado
+// Consulta a la API backend con extensión .js y banco de preguntas reales por categoría
 async function fetchPreguntasBD(genre, level) {
     const genreLower = (genre || "").toLowerCase();
     let categoriaId = 1;
@@ -253,7 +253,7 @@ async function fetchPreguntasBD(genre, level) {
         console.warn("Fallback /api/generar.js no respondió.");
     }
 
-    // 3. RESPALDO LOCAL ABSOLUTO (Evita que el juego falle si cae la red)
+    // 3. RESPALDO LOCAL CON PREGUNTAS Y OPCIONES REALES DE VIDEOJUEGOS
     const bancosRespaldoLocal = {
         "Survival Horror": [
             { q: "¿Qué estudio desarrolló originalmente la saga Silent Hill?", options: ["Capcom", "Team Silent (Konami)", "Shinra", "Square Enix"], correct: 1 },
@@ -262,17 +262,53 @@ async function fetchPreguntasBD(genre, level) {
         ],
         "Deportes": [
             { q: "¿En qué año se lanzó el primer FIFA de EA Sports?", options: ["1993", "1998", "2000", "1990"], correct: 0 },
-            { q: "¿Qué saga de fútbol arcade perteneció a Konami?", options: ["PES / Winning Eleven", "FIFA", "Virtua Striker", "Red Card"], correct: 0 }
+            { q: "¿Qué saga de fútbol arcade perteneció a Konami?", options: ["PES / Winning Eleven", "FIFA", "Virtua Striker", "Red Card"], correct: 0 },
+            { q: "¿En qué saga compites en la liga profesional de básquetbol?", options: ["NBA 2K", "NBA Jam", "Basketball Life", "Courtside"], correct: 0 }
+        ],
+        "Simulación": [
+            { q: "¿Qué simulador de vida fue diseñado originalmente por Will Wright?", options: ["The Sims", "Animal Crossing", "Second Life", "Minecraft"], correct: 0 },
+            { q: "¿En qué simulador de aviación puedes volar aviones comerciales con clima en tiempo real?", options: ["Microsoft Flight Simulator", "X-Plane", "FlightGear", "DCS World"], correct: 0 },
+            { q: "¿Qué juego te permite gestionar una granja moderna con maquinaria real?", options: ["Farming Simulator", "Stardew Valley", "Hay Day", "FarmVille"], correct: 0 }
+        ],
+        "Carreras": [
+            { q: "¿Qué saga exclusiva de PlayStation se apoda 'The Real Driving Simulator'?", options: ["Gran Turismo", "Need for Speed", "Forza Motorsport", "Burnout"], correct: 0 },
+            { q: "¿Qué franquicia de carreras incluye ítems como caparazones y plátanos?", options: ["Mario Kart", "Sonic Racing", "Crash Team Racing", "Wacky Races"], correct: 0 },
+            { q: "¿Qué juego de carreras destaca por sus persecuciones policiales y tuning?", options: ["Need for Speed: Most Wanted", "Gran Turismo 4", "Driveclub", "Grid"], correct: 0 }
+        ],
+        "Lucha": [
+            { q: "¿Qué franquicia creó el famoso movimiento especial 'Hadoken'?", options: ["Street Fighter", "Mortal Kombat", "Tekken", "King of Fighters"], correct: 0 },
+            { q: "¿En qué videojuego de peleas se ejecutan los movimientos finales llamados 'Fatalities'?", options: ["Mortal Kombat", "Tekken", "Injustice", "Dead or Alive"], correct: 0 }
+        ],
+        "RPG": [
+            { q: "¿Cómo se llama el mundo fantástico donde transcurre la saga The Witcher?", options: ["El Continente", "Tamriel", "Hyrule", "Azeroth"], correct: 0 },
+            { q: "¿Qué estudio de videojuegos desarrolló Skyrim y Fallout 4?", options: ["Bethesda Game Studios", "Bioware", "Square Enix", "CD Projekt Red"], correct: 0 }
+        ],
+        "Shooter": [
+            { q: "¿Qué mapa emblemático pertenece a la saga Counter-Strike?", options: ["de_dust2", "Nuketown", "Wake Island", "Blood Gulch"], correct: 0 },
+            { q: "¿Cómo se llama el héroe celestialmente apodado 'Master Chief'?", options: ["John-117", "Marcus Fenix", "Doom Slayer", "Gordon Freeman"], correct: 0 }
+        ],
+        "Acción y Aventura": [
+            { q: "¿Cómo se llama el explorador cazatesoros de la saga Uncharted?", options: ["Nathan Drake", "Lara Croft", "Arthur Morgan", "Kratos"], correct: 0 },
+            { q: "¿En qué videojuego encarnas a Kratos luchando contra dioses griegos y nórdicos?", options: ["God of War", "Devil May Cry", "Darksiders", "Bayonetta"], correct: 0 }
+        ],
+        "Plataformas": [
+            { q: "¿En qué año se lanzó el icónico juego Super Mario Bros para NES?", options: ["1985", "1983", "1990", "1988"], correct: 0 },
+            { q: "¿Qué marsupial naranja es la mascota clásica de las plataformas de PlayStation?", options: ["Crash Bandicoot", "Spyro", "Rayman", "Jak"], correct: 0 }
+        ],
+        "Estrategia": [
+            { q: "¿Qué juego de estrategia en tiempo real popularizó la frase 'Wololo' de los sacerdotes?", options: ["Age of Empires", "StarCraft", "Warcraft III", "Command & Conquer"], correct: 0 },
+            { q: "¿Qué saga se enfoca en turnos y la conquista mundial desde la antigüedad?", options: ["Civilization", "Total War", "StarCraft", "Company of Heroes"], correct: 0 }
         ]
     };
 
-    return bancosRespaldoLocal[genre] || [
-        {
-            q: `¿Pregunta clásica sobre ${genre}?`,
-            options: ["Respuesta Correcta", "Opción Incorrecta 1", "Opción Incorrecta 2", "Opción Incorrecta 3"],
-            correct: 0
+    // Buscar coincidencia en el banco local
+    for (const key in bancosRespaldoLocal) {
+        if (genreLower.includes(key.toLowerCase()) || key.toLowerCase().includes(genreLower)) {
+            return bancosRespaldoLocal[key];
         }
-    ];
+    }
+
+    return bancosRespaldoLocal["Simulación"];
 }
 
 async function iniciarQuiz(genre, level) {
