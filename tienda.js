@@ -1,5 +1,5 @@
 /**
- * tienda.js - Frontend de compras sincronizado por usuario y Aiven MySQL
+ * tienda.js - Frontend de compras sincronizado por usuario y Aiven MySQL (sin emergentes molesto)
  */
 
 const Tienda = {
@@ -61,7 +61,7 @@ const Tienda = {
         if (data.ranking && Array.isArray(data.ranking)) {
           const usuario = data.ranking.find(u => u.id == userId || u.nickname === usuarioActual);
           if (usuario) {
-            this.puntosDisponibles = usuario.puntos_totales;
+            this.puntosDisponibles = parseInt(usuario.puntos_totales, 10) || 0;
             this.guardarDatos();
           }
         }
@@ -85,12 +85,10 @@ const Tienda = {
     const spanShop = document.getElementById("shop-points-display");
     if (spanShop) spanShop.innerText = this.puntosDisponibles;
 
-    // Actualizar contadores en la pantalla de la Tienda
     ['mitad', 'escudo', 'saltar', 'doble'].forEach(item => {
       const shopCant = document.getElementById(`shop-cant-${item}`) || document.getElementById(`owned-${item}`);
       if (shopCant) shopCant.innerText = this.inventario[item] || 0;
 
-      // Actualizar contadores en el HUD de la partida durante la partida
       const hudCant = document.getElementById(`cant-${item}`);
       if (hudCant) hudCant.innerText = this.inventario[item] || 0;
     });
@@ -102,7 +100,6 @@ const Tienda = {
 
     if (this.puntosDisponibles < precio) {
       if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
-      alert("❌ ¡No tienes suficientes puntos!");
       return false;
     }
 
@@ -122,8 +119,8 @@ const Tienda = {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.exito) {
-          this.puntosDisponibles = data.puntosTotales !== undefined ? data.puntosTotales : (this.puntosDisponibles - precio);
+        if (data.exito && data.puntosTotales !== undefined) {
+          this.puntosDisponibles = parseInt(data.puntosTotales, 10);
         } else {
           this.puntosDisponibles -= precio;
         }
@@ -131,7 +128,6 @@ const Tienda = {
         this.puntosDisponibles -= precio;
       }
     } catch (e) {
-      console.warn("Falla de API tienda, procesando compra en modo local:", e);
       this.puntosDisponibles -= precio;
     }
 
@@ -144,7 +140,6 @@ const Tienda = {
       Sonidos.playCompra();
     }
 
-    alert(`🎉 ¡Compraste 1 comodín! Te quedan ${this.puntosDisponibles} pts.`);
     return true;
   },
 
