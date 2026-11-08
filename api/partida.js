@@ -1,63 +1,50 @@
-import pool from './db.js';
+import { dbPool } from './db.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
 
-    const { userId, nickname, puntosObtenidos, categoriaId, dificultad } = req.body;
-
-    if (!userId && !nickname) {
-        return res.status(400).json({ error: 'Falta identificación de usuario' });
-    }
-
     try {
-        const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
-        const idCategoria = parseInt(categoriaId, 10) || 1;
-        const difTexto = (dificultad || 'facil').toLowerCase();
-        let idUsuario = userId ? parseInt(userId, 10) : null;
+        const { userId, nickname, puntosObtenidos, puntosTotalesDirectos } = req.body;
+        const nombreUsuario = nickname || 'invitado';
 
-        if (!idUsuario && nickname) {
-            const [users] = await pool.execute(
-                'SELECT id FROM usuarios WHERE nickname = ? OR LOWER(nickname) = LOWER(?)',
-                [nickname, nickname]
+        // 1. Si el cliente envía el valor exacto procesado en pantalla, guardamos ese total directo
+        if (puntosTotalesDirectos !== undefined && puntosTotalesDirectos !== null) {
+            const nuevoTotal = Math.max(0, parseInt(puntosTotalesDirectos, 10) || 0);
+            await dbPool.query(
+                'UPDATE usuarios SET puntos_totales = ? WHERE id = ? OR nickname = ?',
+                [nuevoTotal, userId || 0, nombreUsuario]
             );
-            if (users.length > 0) {
-                idUsuario = users[0].id;
-            }
+            return res.status(200).json({ exito: true, puntosTotales: nuevoTotal });
         }
 
-        if (!idUsuario) {
-            return res.status(404).json({ error: 'Usuario no encontrado en la BD' });
+        // 2. Si solo envía puntos obtenidos en la partida
+        const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
+
+        const [rows] = await dbPool.query(
+            'SELECT puntos_totales FROM usuarios WHERE id = ? OR nickname = ?',
+            [userId || 0, nombreUsuario]
+        );
+
+        let puntosPrevios = 0;
+        if (rows && rows.length > 0) {
+            puntosPrevios = Math.max(0, parseInt(rows[0].puntos_totales, 10) || 0);
         }
 
-        // 1. Sumar los puntos en el acumulado del usuario
-        await pool.execute(
-            'UPDATE usuarios SET puntos_totales = puntos_totales + ? WHERE id = ?',
-            [puntosASumar, idUsuario]
+        const puntajeFinal = Math.max(0, puntosPrevios + puntosASumar);
+
+        await dbPool.query(
+            'UPDATE usuarios SET puntos_totales = ? WHERE id = ? OR nickname = ?',
+            [puntajeFinal, userId || 0, nombreUsuario]
         );
 
-        // 2. Registrar la partida efectuada
-        await pool.execute(
-            'INSERT INTO partidas (usuario_id, categoria_id, dificultad, puntaje_obtenido) VALUES (?, ?, ?, ?)',
-            [idUsuario, idCategoria, difTexto, puntosASumar]
-        );
-
-        // 3. Traer los puntos acumulados totales
-        const [rows] = await pool.execute(
-            'SELECT puntos_totales FROM usuarios WHERE id = ?',
-            [idUsuario]
-        );
-
-        const totalActual = rows[0] ? rows[0].puntos_totales : 0;
-
-        return res.status(200).json({
-            exito: true,
-            mensaje: 'Puntos guardados correctamente',
-            puntosTotales: totalActual
+        return res.status(200).json({ 
+            exito: true, 
+            puntosTotales: puntajeFinal 
         });
     } catch (error) {
-        console.error("Error en /api/partida:", error);
-        return res.status(500).json({ error: 'Error interno en la BD', detalle: error.message });
+        console.error("Error al registrar la partida:", error);
+        return res.status(500).json({ error: 'Error al actualizar puntos en la base de datos', detalle: error.message });
     }
 }

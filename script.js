@@ -161,6 +161,10 @@ async function guardarProgresoManual() {
     else if (genreLower.includes("carreras")) catId = 9;
     else if (genreLower.includes("deporte")) catId = 10;
 
+    // Calculamos el saldo real que debe quedar en pantalla y en la base de datos
+    const saldoActual = (typeof Tienda !== "undefined") ? Tienda.puntosDisponibles : 0;
+    const nuevoTotalReal = saldoActual + puntosPartidaPendientes;
+
     try {
         const res = await fetch('/api/partida.js', {
             method: 'POST',
@@ -170,7 +174,8 @@ async function guardarProgresoManual() {
                 nickname: usuarioActual,
                 categoriaId: catId,
                 dificultad: selectedLevel || "Fácil",
-                puntosObtenidos: puntosPartidaPendientes
+                puntosObtenidos: puntosPartidaPendientes,
+                puntosTotalesDirectos: nuevoTotalReal
             })
         });
 
@@ -181,7 +186,7 @@ async function guardarProgresoManual() {
             if (data.puntosTotales !== undefined) {
                 refrescarUIConPuntos(data.puntosTotales);
             } else {
-                await obtenerPuntosUsuario();
+                refrescarUIConPuntos(nuevoTotalReal);
             }
         }
     } catch (error) {
