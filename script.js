@@ -94,7 +94,6 @@ async function obtenerPuntosUsuario() {
     }
 }
 
-// FIX: Garantizar que los puntos NUNCA sean negativos en la interfaz
 function refrescarUIConPuntos(puntos) {
     let ptsNum = parseInt(puntos, 10);
     if (isNaN(ptsNum) || ptsNum < 0) {
@@ -456,6 +455,9 @@ function checkAnswer(index, q) {
 }
 
 function mostrarPantallaFinal() {
+    // Guardado automático al superar la ronda
+    guardarProgresoManual();
+
     const quizArea = document.getElementById("quiz");
     if (quizArea) {
         quizArea.innerHTML = `
@@ -525,6 +527,11 @@ function usarComodin(tipo) {
 
 async function volverAlMenu() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+
+    // Guardado de respaldo antes de reiniciar los contadores
+    if (puntosPartidaPendientes > 0) {
+        await guardarProgresoManual();
+    }
 
     score = 0;
     currentIndex = 0;
