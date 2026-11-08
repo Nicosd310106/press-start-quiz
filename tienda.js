@@ -1,5 +1,5 @@
 /**
- * tienda.js - Frontend de compras sincronizado con Aiven MySQL
+ * tienda.js - Frontend de compras sincronizado por usuario y Aiven MySQL
  */
 
 const Tienda = {
@@ -18,8 +18,13 @@ const Tienda = {
     doble: 40
   },
 
-  STORAGE_PUNTOS: 'press_start_quiz_puntos_tienda',
-  STORAGE_INVENTARIO: 'press_start_quiz_inventario',
+  getStorageKeys() {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "invitado";
+    return {
+      pts: `press_start_puntos_${usuarioActual}`,
+      inv: `press_start_inventario_${usuarioActual}`
+    };
+  },
 
   init() {
     this.cargarDatos();
@@ -27,16 +32,19 @@ const Tienda = {
   },
 
   cargarDatos() {
-    const pts = localStorage.getItem(this.STORAGE_PUNTOS);
+    const keys = this.getStorageKeys();
+    const pts = localStorage.getItem(keys.pts);
     this.puntosDisponibles = pts ? parseInt(pts, 10) : 0;
 
-    const inv = localStorage.getItem(this.STORAGE_INVENTARIO);
+    const inv = localStorage.getItem(keys.inv);
     if (inv) {
       try {
         this.inventario = JSON.parse(inv);
       } catch (e) {
         console.warn('Error leyendo inventario local');
       }
+    } else {
+      this.inventario = { mitad: 0, escudo: 0, saltar: 0, doble: 0 };
     }
     this.actualizarUI();
   },
@@ -47,7 +55,7 @@ const Tienda = {
     if (!userId && !usuarioActual) return;
 
     try {
-      const res = await fetch('/api/ranking');
+      const res = await fetch('/api/ranking.js');
       if (res.ok) {
         const data = await res.json();
         if (data.ranking && Array.isArray(data.ranking)) {
@@ -64,8 +72,9 @@ const Tienda = {
   },
 
   guardarDatos() {
-    localStorage.setItem(this.STORAGE_PUNTOS, this.puntosDisponibles.toString());
-    localStorage.setItem(this.STORAGE_INVENTARIO, JSON.stringify(this.inventario));
+    const keys = this.getStorageKeys();
+    localStorage.setItem(keys.pts, this.puntosDisponibles.toString());
+    localStorage.setItem(keys.inv, JSON.stringify(this.inventario));
     this.actualizarUI();
   },
 
@@ -76,17 +85,15 @@ const Tienda = {
     const spanShop = document.getElementById("shop-points-display");
     if (spanShop) spanShop.innerText = this.puntosDisponibles;
 
-    const cantMitad = document.getElementById("shop-cant-mitad");
-    if (cantMitad) cantMitad.innerText = this.inventario.mitad || 0;
+    // Actualizar contadores en la pantalla de la Tienda
+    ['mitad', 'escudo', 'saltar', 'doble'].forEach(item => {
+      const shopCant = document.getElementById(`shop-cant-${item}`) || document.getElementById(`owned-${item}`);
+      if (shopCant) shopCant.innerText = this.inventario[item] || 0;
 
-    const cantEscudo = document.getElementById("shop-cant-escudo");
-    if (cantEscudo) cantEscudo.innerText = this.inventario.escudo || 0;
-
-    const cantSaltar = document.getElementById("shop-cant-saltar");
-    if (cantSaltar) cantSaltar.innerText = this.inventario.saltar || 0;
-
-    const cantDoble = document.getElementById("shop-cant-doble");
-    if (cantDoble) cantDoble.innerText = this.inventario.doble || 0;
+      // Actualizar contadores en el HUD de la partida durante la partida
+      const hudCant = document.getElementById(`cant-${item}`);
+      if (hudCant) hudCant.innerText = this.inventario[item] || 0;
+    });
   },
 
   async comprarItem(itemKey) {
@@ -94,7 +101,8 @@ const Tienda = {
     if (!precio) return false;
 
     if (this.puntosDisponibles < precio) {
-      alert("¡No tienes suficientes puntos!");
+      if (typeof Sonidos !== 'undefined' && typeof Sonidos.playError === 'function') Sonidos.playError();
+      alert("❌ ¡No tienes suficientes puntos!");
       return false;
     }
 
@@ -102,7 +110,7 @@ const Tienda = {
     const usuarioActual = localStorage.getItem('press_start_usuario_actual');
 
     try {
-      const res = await fetch('/api/tienda', {
+      const res = await fetch('/api/tienda.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,31 +120,36 @@ const Tienda = {
         })
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.exito) {
-        this.puntosDisponibles = data.puntosTotales;
-        this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
-        this.guardarDatos();
-
-        if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
-          Sonidos.playCompra();
+      if (res.ok) {
+        const data = await res.json();
+        if (data.exito) {
+          this.puntosDisponibles = data.puntosTotales !== undefined ? data.puntosTotales : (this.puntosDisponibles - precio);
+        } else {
+          this.puntosDisponibles -= precio;
         }
-        return true;
       } else {
-        alert(data.error || "No se pudo procesar la compra.");
-        return false;
+        this.puntosDisponibles -= precio;
       }
     } catch (e) {
-      console.error("Error conectando con /api/tienda:", e);
+      console.warn("Falla de API tienda, procesando compra en modo local:", e);
       this.puntosDisponibles -= precio;
-      this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
-      this.guardarDatos();
-      return true;
     }
+
+    this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;
+    this.guardarDatos();
+
+    if (typeof Sonidos !== 'undefined' && typeof Sonidos.playPowerUp === 'function') {
+      Sonidos.playPowerUp();
+    } else if (typeof Sonidos !== 'undefined' && typeof Sonidos.playCompra === 'function') {
+      Sonidos.playCompra();
+    }
+
+    alert(`🎉 ¡Compraste 1 comodín! Te quedan ${this.puntosDisponibles} pts.`);
+    return true;
   },
 
   usarItem(itemKey) {
+    this.cargarDatos();
     if (this.inventario[itemKey] && this.inventario[itemKey] > 0) {
       this.inventario[itemKey]--;
       this.guardarDatos();
