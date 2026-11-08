@@ -1,5 +1,5 @@
 /**
- * tienda.js - Frontend de compras sincronizado por usuario y Aiven MySQL (sin emergentes molesto)
+ * tienda.js - Frontend de compras sincronizado por usuario y Aiven MySQL (con protección contra puntos negativos)
  */
 
 const Tienda = {
@@ -34,7 +34,8 @@ const Tienda = {
   cargarDatos() {
     const keys = this.getStorageKeys();
     const pts = localStorage.getItem(keys.pts);
-    this.puntosDisponibles = pts ? parseInt(pts, 10) : 0;
+    let ptsParsed = pts ? parseInt(pts, 10) : 0;
+    this.puntosDisponibles = isNaN(ptsParsed) || ptsParsed < 0 ? 0 : ptsParsed;
 
     const inv = localStorage.getItem(keys.inv);
     if (inv) {
@@ -61,7 +62,8 @@ const Tienda = {
         if (data.ranking && Array.isArray(data.ranking)) {
           const usuario = data.ranking.find(u => u.id == userId || u.nickname === usuarioActual);
           if (usuario) {
-            this.puntosDisponibles = parseInt(usuario.puntos_totales, 10) || 0;
+            const ptsBD = parseInt(usuario.puntos_totales, 10);
+            this.puntosDisponibles = isNaN(ptsBD) || ptsBD < 0 ? 0 : ptsBD;
             this.guardarDatos();
           }
         }
@@ -73,12 +75,19 @@ const Tienda = {
 
   guardarDatos() {
     const keys = this.getStorageKeys();
+    if (this.puntosDisponibles < 0 || isNaN(this.puntosDisponibles)) {
+      this.puntosDisponibles = 0;
+    }
     localStorage.setItem(keys.pts, this.puntosDisponibles.toString());
     localStorage.setItem(keys.inv, JSON.stringify(this.inventario));
     this.actualizarUI();
   },
 
   actualizarUI() {
+    if (this.puntosDisponibles < 0 || isNaN(this.puntosDisponibles)) {
+      this.puntosDisponibles = 0;
+    }
+
     const spanMenu = document.getElementById("tienda-puntos-menu");
     if (spanMenu) spanMenu.innerText = this.puntosDisponibles;
 
@@ -120,15 +129,16 @@ const Tienda = {
       if (res.ok) {
         const data = await res.json();
         if (data.exito && data.puntosTotales !== undefined) {
-          this.puntosDisponibles = parseInt(data.puntosTotales, 10);
+          const ptsFinales = parseInt(data.puntosTotales, 10);
+          this.puntosDisponibles = isNaN(ptsFinales) || ptsFinales < 0 ? 0 : ptsFinales;
         } else {
-          this.puntosDisponibles -= precio;
+          this.puntosDisponibles = Math.max(0, this.puntosDisponibles - precio);
         }
       } else {
-        this.puntosDisponibles -= precio;
+        this.puntosDisponibles = Math.max(0, this.puntosDisponibles - precio);
       }
     } catch (e) {
-      this.puntosDisponibles -= precio;
+      this.puntosDisponibles = Math.max(0, this.puntosDisponibles - precio);
     }
 
     this.inventario[itemKey] = (this.inventario[itemKey] || 0) + 1;

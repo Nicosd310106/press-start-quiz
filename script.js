@@ -94,8 +94,12 @@ async function obtenerPuntosUsuario() {
     }
 }
 
+// FIX: Garantizar que los puntos NUNCA sean negativos en la interfaz
 function refrescarUIConPuntos(puntos) {
-    const ptsNum = parseInt(puntos, 10) || 0;
+    let ptsNum = parseInt(puntos, 10);
+    if (isNaN(ptsNum) || ptsNum < 0) {
+        ptsNum = 0;
+    }
 
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
@@ -126,7 +130,7 @@ async function cargarRanking() {
             data.ranking.forEach((jugador) => {
                 const li = document.createElement("li");
                 li.style.margin = "4px 0";
-                li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${jugador.puntos_totales} pts</span>`;
+                li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${Math.max(0, parseInt(jugador.puntos_totales, 10) || 0)} pts</span>`;
                 listaEl.appendChild(li);
             });
         }
