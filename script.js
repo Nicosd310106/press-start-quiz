@@ -139,7 +139,6 @@ async function guardarProgresoManual() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
 
     if (puntosPartidaPendientes <= 0) {
-        alert("¡Aún no tienes nuevos puntos generados en esta partida para guardar!");
         return;
     }
 
@@ -174,7 +173,6 @@ async function guardarProgresoManual() {
 
         if (res.ok) {
             const data = await res.json();
-            alert(`💾 ¡Progreso guardado con éxito! Se sumaron +${puntosPartidaPendientes} puntos a tu cuenta.`);
             puntosPartidaPendientes = 0;
 
             if (data.puntosTotales !== undefined) {
@@ -182,16 +180,12 @@ async function guardarProgresoManual() {
             } else {
                 await obtenerPuntosUsuario();
             }
-        } else {
-            alert("Ocurrió un error al guardar los puntos en el servidor.");
         }
     } catch (error) {
         console.error("Error al registrar puntos en MySQL:", error);
-        alert("Error de conexión al intentar guardar en Aiven MySQL.");
     }
 }
 
-// FIX MODO INFINITO: Normaliza la dificultad para consultar preguntas reales sin fallar en "Infinito" o "Todas"
 async function fetchPreguntasBD(genre, level) {
     const genreLower = (genre || "").toLowerCase();
     let categoriaId = 1;
@@ -209,13 +203,11 @@ async function fetchPreguntasBD(genre, level) {
 
     let dificultadNormalizada = (level || "Fácil").toLowerCase().replace("á", "a").replace("í", "i");
     
-    // Si la dificultad es Infinito o Todas, no filtramos por dificultad en el parámetro
     let queryUrl = `/api/preguntas.js?categoria_id=${categoriaId}`;
     if (!dificultadNormalizada.includes("infinito") && !dificultadNormalizada.includes("todas")) {
         queryUrl += `&dificultad=${dificultadNormalizada}`;
     }
 
-    // 1. Intentar consulta a la BD MySQL en Aiven
     try {
         const response = await fetch(queryUrl);
         if (response.ok) {
@@ -225,10 +217,9 @@ async function fetchPreguntasBD(genre, level) {
             }
         }
     } catch (e) {
-        console.warn("API /api/preguntas.js no disponible o sin resultados...");
+        console.warn("API /api/preguntas.js no disponible...");
     }
 
-    // 2. Intentar consulta a generar.js
     try {
         const responseAlt = await fetch("/api/generar.js", {
             method: "POST",
@@ -245,7 +236,6 @@ async function fetchPreguntasBD(genre, level) {
         console.warn("Fallback /api/generar.js no respondió.");
     }
 
-    // 3. BANCO LOCAL GARANTIZADO CON PREGUNTAS Y RESPUESTAS REALES
     const bancosRespaldoLocal = {
         "Acción y Aventura": [
             { q: "¿Cómo se llama el explorador cazatesoros de la saga Uncharted?", options: ["Nathan Drake", "Lara Croft", "Arthur Morgan", "Kratos"], correct: 0 },
@@ -447,7 +437,6 @@ function checkAnswer(index, q) {
         if (escudoActivo) {
             escudoActivo = false;
             if (typeof Sonidos !== "undefined" && typeof Sonidos.playPowerUp === "function") Sonidos.playPowerUp();
-            alert("🛡️ ¡El escudo absorbió el error!");
             return;
         }
 
@@ -477,7 +466,6 @@ function usarComodin(tipo) {
     if (typeof Tienda === "undefined") return;
 
     if (!Tienda.inventario[tipo] || Tienda.inventario[tipo] <= 0) {
-        alert("¡No tienes este comodín en tu inventario! Cómpralo en la Tienda.");
         return;
     }
 
@@ -515,7 +503,6 @@ function usarComodin(tipo) {
     } else if (tipo === 'escudo') {
         escudoActivo = true;
         Tienda.usarItem('escudo');
-        alert("🛡️ ¡Escudo activado! Te protegerá en tu siguiente error.");
 
     } else if (tipo === 'saltar') {
         Tienda.usarItem('saltar');
@@ -529,7 +516,6 @@ function usarComodin(tipo) {
     } else if (tipo === 'doble') {
         multiplicadorPuntos = 2;
         Tienda.usarItem('doble');
-        alert("✨ ¡Doble puntuación activada para el próximo acierto!");
     }
 }
 
