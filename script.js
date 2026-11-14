@@ -273,10 +273,9 @@ function obtenerBancoManualPorGenero(genre) {
     return bancosRespaldoLocal["Acción y Aventura"];
 }
 
-// Prioriza el banco manual completo (y mezcla con Aiven si hay preguntas) para superar el 60% y dar explicaciones
+// Prioriza el banco manual completo para superar el 60% y dar explicaciones
 async function fetchPreguntasBD(genre, level) {
     const manuales = obtenerBancoManualPorGenero(genre);
-    // Mezclamos aleatoriamente las preguntas manuales
     const mezcladas = [...manuales].sort(() => Math.random() - 0.5);
     return mezcladas;
 }
@@ -333,13 +332,35 @@ function loadQuestion() {
     if (feedbackBox) feedbackBox.style.display = "none";
     if (qEl) qEl.innerText = q.enunciado || q.q;
 
-    const opciones = q.opciones || q.options;
+    const opcionesOriginales = q.opciones || q.options;
+
+    // Etiquetar cada opción para rastrear la correcta antes de mezclar
+    const opcionesEtiquetadas = opcionesOriginales.map((opt, idx) => {
+        if (typeof opt === 'object') {
+            return {
+                texto: opt.texto_opcion,
+                esCorrecta: (opt.es_correcta === 1 || opt.es_correcta === true)
+            };
+        }
+        return {
+            texto: opt,
+            esCorrecta: (idx === q.correct)
+        };
+    });
+
+    // Mezcla aleatoria de casilleros (Fisher-Yates)
+    for (let i = opcionesEtiquetadas.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opcionesEtiquetadas[i], opcionesEtiquetadas[j]] = [opcionesEtiquetadas[j], opcionesEtiquetadas[i]];
+    }
+
+    q._opcionesMezcladas = opcionesEtiquetadas;
+
     if (optionsGrid) {
         optionsGrid.innerHTML = "";
-        opciones.forEach((opt, i) => {
+        opcionesEtiquetadas.forEach((optObj, i) => {
             const btn = document.createElement("button");
-            const textoOpt = typeof opt === 'object' ? opt.texto_opcion : opt;
-            btn.innerText = textoOpt;
+            btn.innerText = optObj.texto;
             btn.className = "btn-option";
             btn.style.display = "block";
             btn.style.opacity = "1";
@@ -359,19 +380,12 @@ function checkAnswer(index, q) {
     if (preguntaRespondida) return;
     preguntaRespondida = true;
 
-    const opciones = q.opciones || q.options;
+    const opciones = q._opcionesMezcladas || [];
     const optSeleccionada = opciones[index];
     const botones = Array.from(document.querySelectorAll("#options-container .btn-option"));
 
-    let esCorrecta = false;
-    let indiceCorrecto = q.correct;
-
-    if (typeof optSeleccionada === 'object') {
-        esCorrecta = (optSeleccionada.es_correcta === 1 || optSeleccionada.es_correcta === true);
-        indiceCorrecto = opciones.findIndex(o => o.es_correcta === 1 || o.es_correcta === true);
-    } else {
-        esCorrecta = (index === q.correct);
-    }
+    const esCorrecta = optSeleccionada ? optSeleccionada.esCorrecta : false;
+    const indiceCorrecto = opciones.findIndex(o => o.esCorrecta);
 
     // Colorear botones para feedback visual inmediato
     botones.forEach((btn, idx) => {
@@ -512,14 +526,12 @@ function usarComodin(tipo) {
 
     if (tipo === 'mitad') {
         const botones = Array.from(document.querySelectorAll("#options-container .btn-option"));
-        const opciones = q.opciones || q.options;
+        const opciones = q._opcionesMezcladas || [];
         let eliminadas = 0;
 
         botones.forEach((btn, idx) => {
             const opt = opciones[idx];
-            const esCorrecta = typeof opt === 'object'
-                ? (opt.es_correcta === 1 || opt.es_correcta === true)
-                : (idx === q.correct);
+            const esCorrecta = opt ? opt.esCorrecta : false;
 
             if (!esCorrecta && eliminadas < 2) {
                 btn.style.display = "none";
