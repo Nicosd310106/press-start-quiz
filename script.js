@@ -18,6 +18,7 @@ let esMultijugador = false;
 let codigoSalaActual = "";
 let mpPollingInterval = null;
 let esAnfitrionSala = false;
+let yoTermineDuelo = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -288,6 +289,7 @@ async function fetchPreguntasBD(genre, level) {
 
 async function iniciarQuiz(genre, level) {
     esMultijugador = false;
+    yoTermineDuelo = false;
     score = 0;
     currentIndex = 0;
     puntosPartidaPendientes = 0;
@@ -526,6 +528,7 @@ function mostrarGameOver() {
 
 function mostrarPantallaFinal() {
     if (esMultijugador) {
+        yoTermineDuelo = true;
         sincronizarEstadoMultijugador(true);
         const quizArea = document.getElementById("quiz");
         if (quizArea) {
@@ -533,6 +536,7 @@ function mostrarPantallaFinal() {
                 <h2 style="color: #00feff;">🏁 ¡TERMINASTE TU RONDA!</h2>
                 <p style="font-size: 1.3rem;">Tu puntaje: ${score} pts</p>
                 <p style="color: #ffe600;">⏳ Esperando que tu rival termine sus preguntas...</p>
+                <button class="btn-option" onclick="volverAlMenu()" style="margin-top: 15px;">SALIR AL MENÚ</button>
             `;
         }
         return;
@@ -592,6 +596,7 @@ async function volverAlMenu() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
     if (mpPollingInterval) clearInterval(mpPollingInterval);
     esMultijugador = false;
+    yoTermineDuelo = false;
     codigoSalaActual = "";
 
     const scoreboard = document.getElementById("mp-scoreboard");
@@ -650,6 +655,7 @@ function cerrarLobbyMultijugador() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
     if (mpPollingInterval) clearInterval(mpPollingInterval);
     esMultijugador = false;
+    yoTermineDuelo = false;
     codigoSalaActual = "";
     document.getElementById("multiplayer-lobby").style.display = "none";
     document.getElementById("genre-selection").style.display = "block";
@@ -746,6 +752,7 @@ async function unirseSalaMultijugador() {
 
 function iniciarPartidaMultijugador(sala) {
     esMultijugador = true;
+    yoTermineDuelo = false;
     score = 0;
     currentIndex = 0;
     puntosPartidaPendientes = 0;
@@ -789,8 +796,10 @@ function iniciarPartidaMultijugador(sala) {
     mpPollingInterval = setInterval(sincronizarEstadoMultijugador, 2000);
 }
 
-async function sincronizarEstadoMultijugador(termino = false) {
+async function sincronizarEstadoMultijugador(terminoParam = false) {
     if (!esMultijugador || !codigoSalaActual) return;
+    if (terminoParam) yoTermineDuelo = true;
+
     const usuarioActual = localStorage.getItem("press_start_usuario_actual");
 
     try {
@@ -802,7 +811,7 @@ async function sincronizarEstadoMultijugador(termino = false) {
                 codigo: codigoSalaActual,
                 nickname: usuarioActual,
                 puntos: score,
-                termino: termino
+                termino: yoTermineDuelo
             })
         });
 
@@ -813,12 +822,12 @@ async function sincronizarEstadoMultijugador(termino = false) {
                 const s = data.sala;
                 const soyJ1 = (s.jugador1_nick === usuarioActual);
                 const puntosRival = soyJ1 ? s.jugador2_puntos : s.jugador1_puntos;
-                const rivalTermino = soyJ1 ? s.jugador2_termino : s.jugador1_termino;
+                const rivalTermino = soyJ1 ? (s.jugador2_termino == 1) : (s.jugador1_termino == 1);
 
                 document.getElementById("mp-my-score").innerText = score;
                 document.getElementById("mp-rival-score").innerText = puntosRival;
 
-                if (termino && rivalTermino) {
+                if (yoTermineDuelo && rivalTermino) {
                     clearInterval(mpPollingInterval);
                     mostrarResultadoFinalDuelo(score, puntosRival, soyJ1 ? s.jugador2_nick : s.jugador1_nick);
                 }
