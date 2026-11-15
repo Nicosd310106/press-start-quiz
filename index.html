@@ -36,8 +36,13 @@
                         🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
                     </a>
                 </div>
+
+                <!-- BOTÓN MODO MULTIJUGADOR -->
+                <button onclick="abrirLobbyMultijugador()" class="btn-option" style="width: 100%; margin-bottom: 12px; border-color: #00feff; color: #00feff; font-weight: bold; background: rgba(0, 254, 255, 0.08);">
+                    ⚔️ MODO MULTIJUGADOR (1v1 EN VIVO)
+                </button>
                 
-                <div class="menu-options" style="max-height: 280px; overflow-y: auto; padding-right: 5px;">
+                <div class="menu-options" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
                     <button class="btn-genre" data-genre="Survival Horror">
                         <span class="diff-icon">🧟</span>
                         <span class="diff-label">Survival Horror</span>
@@ -89,6 +94,50 @@
                 </div>
             </div>
 
+            <!-- LOBBY MULTIJUGADOR 1v1 -->
+            <div id="multiplayer-lobby" style="display: none; text-align: center; padding: 10px;">
+                <h2 style="color: #00feff; margin-bottom: 10px;">⚔️ DUELO MULTIJUGADOR 1v1</h2>
+                
+                <div id="mp-setup-panel">
+                    <div style="border: 1px solid #ff0055; padding: 12px; border-radius: 8px; margin-bottom: 15px; background: rgba(255, 0, 85, 0.05);">
+                        <p style="color: #ffe600; font-weight: bold; margin: 0 0 8px 0;">CREAR NUEVA SALA</p>
+                        <select id="mp-genre-select" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #111; color: #fff; border: 1px solid #00feff; border-radius: 4px;">
+                            <option value="Survival Horror">🧟 Survival Horror</option>
+                            <option value="RPG">⚔️ RPG</option>
+                            <option value="Acción y Aventura">🔥 Acción y Aventura</option>
+                            <option value="Shooter">🎯 Shooter / Disparos</option>
+                            <option value="Lucha">🥊 Lucha / Peleas</option>
+                            <option value="Plataformas">🍄 Plataformas</option>
+                            <option value="Estrategia">♟️ Estrategia</option>
+                            <option value="Simulación">🏗️ Simulación</option>
+                            <option value="Carreras">🏎️ Carreras</option>
+                            <option value="Deportes">⚽ Deportes</option>
+                        </select>
+                        <button onclick="crearSalaMultijugador()" class="btn-option" style="width: 100%; border-color: #00ff66; color: #00ff66;">
+                            ➕ GENERAR CÓDIGO DE SALA
+                        </button>
+                    </div>
+
+                    <div style="border: 1px solid #00feff; padding: 12px; border-radius: 8px; background: rgba(0, 254, 255, 0.05);">
+                        <p style="color: #00feff; font-weight: bold; margin: 0 0 8px 0;">UNIRSE A SALA EXISTENTE</p>
+                        <input type="text" id="mp-code-input" maxlength="6" placeholder="CÓDIGO (EJ: X9K2)" style="width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 10px; text-align: center; text-transform: uppercase; background: #111; color: #ffe600; border: 1px solid #ffe600; font-size: 1.1rem; font-weight: bold;">
+                        <button onclick="unirseSalaMultijugador()" class="btn-option" style="width: 100%; border-color: #ffe600; color: #ffe600;">
+                            🚀 ENTRAR AL DUELO
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SALA DE ESPERA DEL ANFITRIÓN -->
+                <div id="mp-waiting-panel" style="display: none; border: 2px dashed #00feff; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    <p style="margin: 0 0 6px 0; color: #fff;">Compartí este código con tu rival:</p>
+                    <div id="mp-room-code-display" style="font-size: 2rem; font-weight: bold; color: #ffe600; letter-spacing: 4px; margin: 10px 0;">----</div>
+                    <p id="mp-waiting-status" style="color: #00feff; font-size: 0.9rem;">⏳ Esperando que se conecte el Jugador 2...</p>
+                </div>
+
+                <p id="mp-error-msg" style="color: #ff0055; font-size: 0.85rem; margin-top: 8px;"></p>
+                <button onclick="cerrarLobbyMultijugador()" class="btn-option" style="margin-top: 15px;">← Volver al Menú</button>
+            </div>
+
             <!-- PASO 2: Selección de Dificultad -->
             <div id="difficulty-selection" style="display: none;">
                 <p class="menu-subtitle">Género: <span id="selected-genre-label" style="color: #ff0055;"></span></p>
@@ -125,6 +174,13 @@
         </div>
 
         <div id="game" style="display: none;">
+            <!-- MARCADOR EN VIVO MULTIJUGADOR (SOLO VISIBLE EN 1v1) -->
+            <div id="mp-scoreboard" style="display: none; justify-content: space-between; align-items: center; background: rgba(0, 254, 255, 0.12); border: 1px solid #00feff; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.9rem;">
+                <span style="color: #00ff66; font-weight: bold;">🧑 Vos: <span id="mp-my-score">0</span> pts</span>
+                <span style="color: #ffe600; font-weight: bold;">SALA: <span id="mp-hud-code">----</span></span>
+                <span style="color: #ff0055; font-weight: bold;">🆚 <span id="mp-rival-name">Rival</span>: <span id="mp-rival-score">0</span> pts</span>
+            </div>
+
             <!-- HUD Superior del Juego con Botón de Guardar Progreso -->
             <div id="status" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span id="difficulty-badge">Fácil</span>

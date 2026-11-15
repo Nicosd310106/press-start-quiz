@@ -13,6 +13,12 @@ let multiplicadorPuntos = 1;
 let escudoActivo = false;
 let preguntaRespondida = false;
 
+// Variables de estado para Modo Multijugador 1v1
+let esMultijugador = false;
+let codigoSalaActual = "";
+let mpPollingInterval = null;
+let esAnfitrionSala = false;
+
 document.addEventListener("DOMContentLoaded", () => {
     try {
         const usuarioActual = localStorage.getItem("press_start_usuario_actual");
@@ -281,12 +287,16 @@ async function fetchPreguntasBD(genre, level) {
 }
 
 async function iniciarQuiz(genre, level) {
+    esMultijugador = false;
     score = 0;
     currentIndex = 0;
     puntosPartidaPendientes = 0;
     multiplicadorPuntos = 1;
     escudoActivo = false;
     preguntaRespondida = false;
+
+    const scoreboard = document.getElementById("mp-scoreboard");
+    if (scoreboard) scoreboard.style.display = "none";
 
     const scoreDisp = document.getElementById("score-display");
     const diffBadge = document.getElementById("difficulty-badge");
@@ -426,6 +436,12 @@ function checkAnswer(index, q) {
         const scoreDisp = document.getElementById("score-display");
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
+        if (esMultijugador) {
+            const myScoreEl = document.getElementById("mp-my-score");
+            if (myScoreEl) myScoreEl.innerText = score;
+            sincronizarEstadoMultijugador(false);
+        }
+
         if (feedbackBox && feedbackStatus && feedbackText && btnNext) {
             feedbackBox.style.borderColor = "#00ff66";
             feedbackBox.style.background = "rgba(0, 255, 102, 0.1)";
@@ -466,7 +482,7 @@ function checkAnswer(index, q) {
             feedbackStatus.style.color = "#ff0055";
             feedbackStatus.innerText = "❌ RESPUESTA INCORRECTA";
             feedbackText.innerText = `💡 Explicación: ${explicacion}`;
-            btnNext.innerText = "Ver Resultado Final ➔";
+            btnNext.innerText = esMultijugador ? "Siguiente Pregunta ➔" : "Ver Resultado Final ➔";
             btnNext.style.background = "#ff0055";
             btnNext.style.color = "#fff";
             btnNext.onclick = () => mostrarGameOver();
@@ -492,6 +508,11 @@ function avanzarSiguientePregunta() {
 }
 
 function mostrarGameOver() {
+    if (esMultijugador) {
+        avanzarSiguientePregunta();
+        return;
+    }
+
     if (puntosPartidaPendientes > 0) {
         guardarProgresoManual();
     }
@@ -504,6 +525,19 @@ function mostrarGameOver() {
 }
 
 function mostrarPantallaFinal() {
+    if (esMultijugador) {
+        sincronizarEstadoMultijugador(true);
+        const quizArea = document.getElementById("quiz");
+        if (quizArea) {
+            quizArea.innerHTML = `
+                <h2 style="color: #00feff;">🏁 ¡TERMINASTE TU RONDA!</h2>
+                <p style="font-size: 1.3rem;">Tu puntaje: ${score} pts</p>
+                <p style="color: #ffe600;">⏳ Esperando que tu rival termine sus preguntas...</p>
+            `;
+        }
+        return;
+    }
+
     guardarProgresoManual();
     const quizArea = document.getElementById("quiz");
     if (quizArea) {
@@ -556,6 +590,13 @@ function usarComodin(tipo) {
 
 async function volverAlMenu() {
     if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+    if (mpPollingInterval) clearInterval(mpPollingInterval);
+    esMultijugador = false;
+    codigoSalaActual = "";
+
+    const scoreboard = document.getElementById("mp-scoreboard");
+    if (scoreboard) scoreboard.style.display = "none";
+
     if (puntosPartidaPendientes > 0) await guardarProgresoManual();
 
     score = 0;
@@ -568,6 +609,7 @@ async function volverAlMenu() {
     const menuEl = document.getElementById("menu");
     const genreSelection = document.getElementById("genre-selection");
     const diffSelection = document.getElementById("difficulty-selection");
+    const lobbyEl = document.getElementById("multiplayer-lobby");
     const quizArea = document.getElementById("quiz");
 
     if (quizArea) {
@@ -577,6 +619,7 @@ async function volverAlMenu() {
     if (gameEl) gameEl.style.display = "none";
     if (gameOverScreen) gameOverScreen.style.display = "none";
     if (diffSelection) diffSelection.style.display = "none";
+    if (lobbyEl) lobbyEl.style.display = "none";
     if (genreSelection) genreSelection.style.display = "block";
     if (menuEl) menuEl.style.display = "block";
 
@@ -588,4 +631,222 @@ function cerrarSesion() {
     localStorage.removeItem("press_start_usuario_actual");
     localStorage.removeItem("press_start_user_id");
     window.location.href = "login.html";
+}
+
+// ==========================================================
+// MODO MULTIJUGADOR 1v1 EN TIEMPO REAL
+// ==========================================================
+
+function abrirLobbyMultijugador() {
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+    document.getElementById("genre-selection").style.display = "none";
+    document.getElementById("multiplayer-lobby").style.display = "block";
+    document.getElementById("mp-setup-panel").style.display = "block";
+    document.getElementById("mp-waiting-panel").style.display = "none";
+    document.getElementById("mp-error-msg").innerText = "";
+}
+
+function cerrarLobbyMultijugador() {
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+    if (mpPollingInterval) clearInterval(mpPollingInterval);
+    esMultijugador = false;
+    codigoSalaActual = "";
+    document.getElementById("multiplayer-lobby").style.display = "none";
+    document.getElementById("genre-selection").style.display = "block";
+}
+
+async function crearSalaMultijugador() {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador1";
+    const genre = document.getElementById("mp-genre-select").value;
+    const preguntas = await fetchPreguntasBD(genre, "Fácil");
+    const errorEl = document.getElementById("mp-error-msg");
+    errorEl.innerText = "";
+
+    try {
+        const res = await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'crear',
+                nickname: usuarioActual,
+                categoria: genre,
+                preguntas: preguntas
+            })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.codigo) {
+            codigoSalaActual = data.codigo;
+            esAnfitrionSala = true;
+            selectedGenre = genre;
+            selectedLevel = "Multijugador 1v1";
+            nivelActualLabel = `${genre} (1v1)`;
+            bancoMezclado = preguntas;
+
+            document.getElementById("mp-setup-panel").style.display = "none";
+            document.getElementById("mp-waiting-panel").style.display = "block";
+            document.getElementById("mp-room-code-display").innerText = codigoSalaActual;
+
+            mpPollingInterval = setInterval(async () => {
+                const checkRes = await fetch(`/api/multijugador.js?codigo=${codigoSalaActual}`);
+                if (checkRes.ok) {
+                    const checkData = await checkRes.json();
+                    if (checkData.sala && checkData.sala.estado === 'jugando' && checkData.sala.jugador2_nick) {
+                        clearInterval(mpPollingInterval);
+                        iniciarPartidaMultijugador(checkData.sala);
+                    }
+                }
+            }, 2000);
+        } else {
+            errorEl.innerText = data.error || "No se pudo crear la sala.";
+        }
+    } catch (e) {
+        errorEl.innerText = "Error de red al crear la sala.";
+    }
+}
+
+async function unirseSalaMultijugador() {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador2";
+    const codigoInput = document.getElementById("mp-code-input").value.trim().toUpperCase();
+    const errorEl = document.getElementById("mp-error-msg");
+    errorEl.innerText = "";
+
+    if (!codigoInput) {
+        errorEl.innerText = "Ingresá un código de sala válido.";
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'unirse',
+                codigo: codigoInput,
+                nickname: usuarioActual
+            })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.sala) {
+            codigoSalaActual = data.sala.codigo_sala;
+            esAnfitrionSala = false;
+            selectedGenre = data.sala.categoria;
+            selectedLevel = "Multijugador 1v1";
+            nivelActualLabel = `${selectedGenre} (1v1)`;
+            bancoMezclado = JSON.parse(data.sala.preguntas_json);
+            iniciarPartidaMultijugador(data.sala);
+        } else {
+            errorEl.innerText = data.error || "Sala no encontrada.";
+        }
+    } catch (e) {
+        errorEl.innerText = "Error de conexión al unirse.";
+    }
+}
+
+function iniciarPartidaMultijugador(sala) {
+    esMultijugador = true;
+    score = 0;
+    currentIndex = 0;
+    puntosPartidaPendientes = 0;
+    multiplicadorPuntos = 1;
+    escudoActivo = false;
+    preguntaRespondida = false;
+
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+    const rivalNick = (sala.jugador1_nick === usuarioActual) ? sala.jugador2_nick : sala.jugador1_nick;
+
+    document.getElementById("multiplayer-lobby").style.display = "none";
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    document.getElementById("game-over-screen").style.display = "none";
+
+    const scoreboard = document.getElementById("mp-scoreboard");
+    scoreboard.style.display = "flex";
+    document.getElementById("mp-hud-code").innerText = codigoSalaActual;
+    document.getElementById("mp-rival-name").innerText = rivalNick || "Rival";
+    document.getElementById("mp-my-score").innerText = "0";
+    document.getElementById("mp-rival-score").innerText = "0";
+
+    const quizArea = document.getElementById("quiz");
+    quizArea.style.display = "block";
+    quizArea.innerHTML = `
+        <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
+        <h2 id="question">Cargando pregunta...</h2>
+        <div id="options-container" class="options-grid"></div>
+        <div id="feedback-box" style="display: none; margin-top: 15px; padding: 12px; border-radius: 8px; border: 1px solid #00feff; background: rgba(0, 254, 255, 0.1); text-align: left;">
+            <p id="feedback-status" style="font-weight: bold; margin: 0 0 6px 0; font-size: 0.95rem;"></p>
+            <p id="feedback-text" style="color: #e0e0e0; font-size: 0.85rem; margin: 0 0 12px 0; line-height: 1.4;"></p>
+            <button id="btn-next-question" class="btn-powerup" style="width: 100%; background: #00feff; color: #000; font-weight: bold; border: none; padding: 10px;">
+                Siguiente Pregunta ➔
+            </button>
+        </div>
+    `;
+
+    loadQuestion();
+
+    if (mpPollingInterval) clearInterval(mpPollingInterval);
+    mpPollingInterval = setInterval(sincronizarEstadoMultijugador, 2000);
+}
+
+async function sincronizarEstadoMultijugador(termino = false) {
+    if (!esMultijugador || !codigoSalaActual) return;
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+
+    try {
+        await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'actualizar',
+                codigo: codigoSalaActual,
+                nickname: usuarioActual,
+                puntos: score,
+                termino: termino
+            })
+        });
+
+        const res = await fetch(`/api/multijugador.js?codigo=${codigoSalaActual}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.sala) {
+                const s = data.sala;
+                const soyJ1 = (s.jugador1_nick === usuarioActual);
+                const puntosRival = soyJ1 ? s.jugador2_puntos : s.jugador1_puntos;
+                const rivalTermino = soyJ1 ? s.jugador2_termino : s.jugador1_termino;
+
+                document.getElementById("mp-my-score").innerText = score;
+                document.getElementById("mp-rival-score").innerText = puntosRival;
+
+                if (termino && rivalTermino) {
+                    clearInterval(mpPollingInterval);
+                    mostrarResultadoFinalDuelo(score, puntosRival, soyJ1 ? s.jugador2_nick : s.jugador1_nick);
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Error sincronizando duelo 1v1");
+    }
+}
+
+function mostrarResultadoFinalDuelo(misPuntos, puntosRival, nombreRival) {
+    guardarProgresoManual();
+    const quizArea = document.getElementById("quiz");
+    let titulo = "🤝 ¡EMPATE ÉPICO!";
+    let color = "#ffe600";
+
+    if (misPuntos > puntosRival) {
+        titulo = "🏆 ¡GANASTE EL DUELO!";
+        color = "#00ff66";
+    } else if (misPuntos < puntosRival) {
+        titulo = "💀 DERROTA EN EL DUELO";
+        color = "#ff0055";
+    }
+
+    quizArea.innerHTML = `
+        <h2 style="color: ${color};">${titulo}</h2>
+        <p style="font-size: 1.2rem; color: #00feff;">Tus puntos: <strong>${misPuntos}</strong></p>
+        <p style="font-size: 1.2rem; color: #ff0055;">${nombreRival}: <strong>${puntosRival}</strong></p>
+        <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+    `;
 }
