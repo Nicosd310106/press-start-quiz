@@ -1,5 +1,7 @@
 import { dbPool } from './db.js';
 
+const MAX_PUNTOS_TIENDA = 200;
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
@@ -9,9 +11,8 @@ export default async function handler(req, res) {
         const { userId, nickname, puntosObtenidos, puntosTotalesDirectos } = req.body;
         const nombreUsuario = nickname || 'invitado';
 
-        // 1. Si el cliente envía el valor exacto procesado en pantalla, guardamos ese total directo
         if (puntosTotalesDirectos !== undefined && puntosTotalesDirectos !== null) {
-            const nuevoTotal = Math.max(0, parseInt(puntosTotalesDirectos, 10) || 0);
+            const nuevoTotal = Math.min(MAX_PUNTOS_TIENDA, Math.max(0, parseInt(puntosTotalesDirectos, 10) || 0));
             await dbPool.query(
                 'UPDATE usuarios SET puntos_totales = ? WHERE id = ? OR nickname = ?',
                 [nuevoTotal, userId || 0, nombreUsuario]
@@ -19,7 +20,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ exito: true, puntosTotales: nuevoTotal });
         }
 
-        // 2. Si solo envía puntos obtenidos en la partida
         const puntosASumar = parseInt(puntosObtenidos, 10) || 0;
 
         const [rows] = await dbPool.query(
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
             puntosPrevios = Math.max(0, parseInt(rows[0].puntos_totales, 10) || 0);
         }
 
-        const puntajeFinal = Math.max(0, puntosPrevios + puntosASumar);
+        const puntajeFinal = Math.min(MAX_PUNTOS_TIENDA, Math.max(0, puntosPrevios + puntosASumar));
 
         await dbPool.query(
             'UPDATE usuarios SET puntos_totales = ? WHERE id = ? OR nickname = ?',

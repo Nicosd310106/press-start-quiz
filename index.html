@@ -16,6 +16,13 @@
     </script>
 </head>
 <body>
+    <!-- OVERLAY CONTADOR 5 SEGUNDOS MULTIJUGADOR -->
+    <div id="mp-countdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(3, 3, 5, 0.92); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;">
+        <p style="color: #00feff; font-size: 1.1rem; margin-bottom: 15px;">⚔️ ¡LA PARTIDA COMIENZA EN...!</p>
+        <div id="mp-countdown-number" style="font-size: 5rem; font-weight: bold; color: #ffe600; text-shadow: 0 0 25px #ff0055;">5</div>
+        <p style="color: #fff; font-size: 0.85rem; margin-top: 15px;">Preparate para responder</p>
+    </div>
+
     <div class="game-container">
         <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -32,14 +39,14 @@
             <div id="genre-selection">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <p class="menu-subtitle" style="margin: 0;">Elige el género de videojuegos</p>
-                    <a href="tienda.html" class="btn-powerup" style="width: auto; padding: 4px 10px; text-decoration: none; display: inline-flex; align-items: center; cursor: pointer;">
-                        🛒 Tienda (<span id="tienda-puntos-menu">0</span> pts)
+                    <a href="tienda.html" class="btn-powerup" style="width: auto; padding: 4px 10px; text-decoration: none; display: inline-flex; align-items: center; cursor: pointer;" title="Máximo acumulable: 200 pts">
+                        🛒 Tienda (<span id="tienda-puntos-menu">0</span>/200)
                     </a>
                 </div>
 
                 <!-- BOTÓN MODO MULTIJUGADOR -->
                 <button onclick="abrirLobbyMultijugador()" class="btn-option" style="width: 100%; margin-bottom: 12px; border-color: #00feff; color: #00feff; font-weight: bold; background: rgba(0, 254, 255, 0.08);">
-                    ⚔️ MODO MULTIJUGADOR (1v1 EN VIVO)
+                    ⚔️ MULTIJUGADOR EN VIVO (1v1 a 4v4)
                 </button>
                 
                 <div class="menu-options" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
@@ -94,13 +101,23 @@
                 </div>
             </div>
 
-            <!-- LOBBY MULTIJUGADOR 1v1 -->
+            <!-- LOBBY MULTIJUGADOR POR EQUIPOS -->
             <div id="multiplayer-lobby" style="display: none; text-align: center; padding: 10px;">
-                <h2 style="color: #00feff; margin-bottom: 10px;">⚔️ DUELO MULTIJUGADOR 1v1</h2>
+                <h2 style="color: #00feff; margin-bottom: 10px;">⚔️ SALA MULTIJUGADOR</h2>
                 
                 <div id="mp-setup-panel">
                     <div style="border: 1px solid #ff0055; padding: 12px; border-radius: 8px; margin-bottom: 15px; background: rgba(255, 0, 85, 0.05);">
                         <p style="color: #ffe600; font-weight: bold; margin: 0 0 8px 0;">CREAR NUEVA SALA</p>
+                        
+                        <label style="display: block; text-align: left; font-size: 0.7rem; color: #00feff; margin-bottom: 4px;">Cantidad de jugadores:</label>
+                        <select id="mp-mode-select" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #111; color: #ffe600; border: 1px solid #ffe600; border-radius: 4px; font-weight: bold;">
+                            <option value="1v1">👤 1v1 (2 jugadores)</option>
+                            <option value="2v2">👥 2v2 (4 jugadores)</option>
+                            <option value="3v3">👥 3v3 (6 jugadores)</option>
+                            <option value="4v4">👥 4v4 (8 jugadores)</option>
+                        </select>
+
+                        <label style="display: block; text-align: left; font-size: 0.7rem; color: #00feff; margin-bottom: 4px;">Categoría:</label>
                         <select id="mp-genre-select" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #111; color: #fff; border: 1px solid #00feff; border-radius: 4px;">
                             <option value="Survival Horror">🧟 Survival Horror</option>
                             <option value="RPG">⚔️ RPG</option>
@@ -113,6 +130,7 @@
                             <option value="Carreras">🏎️ Carreras</option>
                             <option value="Deportes">⚽ Deportes</option>
                         </select>
+
                         <button onclick="crearSalaMultijugador()" class="btn-option" style="width: 100%; border-color: #00ff66; color: #00ff66;">
                             ➕ GENERAR CÓDIGO DE SALA
                         </button>
@@ -122,16 +140,54 @@
                         <p style="color: #00feff; font-weight: bold; margin: 0 0 8px 0;">UNIRSE A SALA EXISTENTE</p>
                         <input type="text" id="mp-code-input" maxlength="6" placeholder="CÓDIGO (EJ: X9K2)" style="width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 10px; text-align: center; text-transform: uppercase; background: #111; color: #ffe600; border: 1px solid #ffe600; font-size: 1.1rem; font-weight: bold;">
                         <button onclick="unirseSalaMultijugador()" class="btn-option" style="width: 100%; border-color: #ffe600; color: #ffe600;">
-                            🚀 ENTRAR AL DUELO
+                            🚀 ENTRAR A LA SALA
                         </button>
                     </div>
                 </div>
 
-                <!-- SALA DE ESPERA DEL ANFITRIÓN -->
-                <div id="mp-waiting-panel" style="display: none; border: 2px dashed #00feff; padding: 15px; border-radius: 8px; margin-top: 10px;">
-                    <p style="margin: 0 0 6px 0; color: #fff;">Compartí este código con tu rival:</p>
-                    <div id="mp-room-code-display" style="font-size: 2rem; font-weight: bold; color: #ffe600; letter-spacing: 4px; margin: 10px 0;">----</div>
-                    <p id="mp-waiting-status" style="color: #00feff; font-size: 0.9rem;">⏳ Esperando que se conecte el Jugador 2...</p>
+                <!-- SALA DE ESPERA CON EQUIPOS, CHAT Y BOTÓN DE INICIO PARA ANFITRIÓN -->
+                <div id="mp-waiting-panel" style="display: none; border: 2px solid #00feff; padding: 12px; border-radius: 8px; margin-top: 10px; background: rgba(0,0,0,0.6);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span id="mp-lobby-mode-badge" style="background: #ff0055; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">1v1</span>
+                        <span style="color: #fff; font-size: 0.75rem;">CÓDIGO: <strong id="mp-room-code-display" style="color: #ffe600; font-size: 1.2rem; letter-spacing: 2px;">----</strong></span>
+                    </div>
+
+                    <!-- LISTA DE EQUIPOS -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; text-align: left;">
+                        <div style="border: 1px solid #00ff66; border-radius: 6px; padding: 8px; background: rgba(0, 255, 102, 0.08);">
+                            <p style="color: #00ff66; font-size: 0.75rem; font-weight: bold; margin-bottom: 6px;">🛡️ EQUIPO A</p>
+                            <ul id="mp-team-a-list" style="list-style: none; font-size: 0.72rem; color: #fff; margin: 0; padding: 0;"></ul>
+                        </div>
+                        <div style="border: 1px solid #ff0055; border-radius: 6px; padding: 8px; background: rgba(255, 0, 85, 0.08);">
+                            <p style="color: #ff0055; font-size: 0.75rem; font-weight: bold; margin-bottom: 6px;">🔥 EQUIPO B</p>
+                            <ul id="mp-team-b-list" style="list-style: none; font-size: 0.72rem; color: #fff; margin: 0; padding: 0;"></ul>
+                        </div>
+                    </div>
+
+                    <button onclick="cambiarMiEquipo()" class="btn-powerup" style="width: 100%; margin-bottom: 10px; border-color: #ffe600; color: #ffe600; font-size: 0.72rem; padding: 6px;">
+                        🔄 Cambiar de Equipo
+                    </button>
+
+                    <!-- CHAT PREVIO A LA PARTIDA -->
+                    <div style="border: 1px solid #00feff; border-radius: 6px; padding: 8px; background: #05070d; margin-bottom: 10px; text-align: left;">
+                        <p style="color: #00feff; font-size: 0.7rem; margin-bottom: 6px;">💬 CHAT DE SALA</p>
+                        <div id="mp-chat-messages" style="height: 110px; overflow-y: auto; font-size: 0.7rem; color: #e0e0e0; margin-bottom: 8px; padding-right: 4px; display: flex; flex-direction: column; gap: 4px;"></div>
+                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                            <select id="mp-chat-channel" style="background: #111; color: #ffe600; border: 1px solid #00feff; border-radius: 4px; font-size: 0.65rem; padding: 4px;">
+                                <option value="todos">🌐 Todos</option>
+                                <option value="equipo">🛡️ Mi Equipo</option>
+                            </select>
+                            <input type="text" id="mp-chat-input" maxlength="140" placeholder="Escribí un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChat()" style="flex: 1; padding: 6px; font-size: 0.7rem; border: 1px solid #00feff; background: #000; color: #fff;">
+                            <button onclick="enviarMensajeChat()" style="width: auto; padding: 6px 10px; font-size: 0.7rem; background: #00feff; color: #000; border: none; font-weight: bold;">Enviar</button>
+                        </div>
+                    </div>
+
+                    <p id="mp-waiting-status" style="color: #00feff; font-size: 0.78rem; margin-bottom: 8px;">⏳ Esperando jugadores...</p>
+
+                    <!-- BOTÓN SOLO PARA EL ANFITRIÓN -->
+                    <button id="btn-mp-start-host" onclick="anfitrionIniciarPartida()" class="btn-option" style="display: none; width: 100%; background: #00ff66; color: #000; border-color: #00ff66; font-weight: bold;">
+                        🚀 INICIAR PARTIDA (5s)
+                    </button>
                 </div>
 
                 <p id="mp-error-msg" style="color: #ff0055; font-size: 0.85rem; margin-top: 8px;"></p>
@@ -174,14 +230,14 @@
         </div>
 
         <div id="game" style="display: none;">
-            <!-- MARCADOR EN VIVO MULTIJUGADOR (SOLO VISIBLE EN 1v1) -->
-            <div id="mp-scoreboard" style="display: none; justify-content: space-between; align-items: center; background: rgba(0, 254, 255, 0.12); border: 1px solid #00feff; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.9rem;">
-                <span style="color: #00ff66; font-weight: bold;">🧑 Vos: <span id="mp-my-score">0</span> pts</span>
+            <!-- MARCADOR EN VIVO POR EQUIPOS -->
+            <div id="mp-scoreboard" style="display: none; justify-content: space-between; align-items: center; background: rgba(0, 254, 255, 0.12); border: 1px solid #00feff; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem;">
+                <span style="color: #00ff66; font-weight: bold;">🛡️ Eq. A: <span id="mp-team-a-score">0</span> pts</span>
                 <span style="color: #ffe600; font-weight: bold;">SALA: <span id="mp-hud-code">----</span></span>
-                <span style="color: #ff0055; font-weight: bold;">🆚 <span id="mp-rival-name">Rival</span>: <span id="mp-rival-score">0</span> pts</span>
+                <span style="color: #ff0055; font-weight: bold;">🔥 Eq. B: <span id="mp-team-b-score">0</span> pts</span>
             </div>
 
-            <!-- HUD Superior del Juego con Botón de Guardar Progreso -->
+            <!-- HUD Superior del Juego -->
             <div id="status" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span id="difficulty-badge">Fácil</span>
                 <span id="score-display">Puntos: 0</span>
@@ -218,7 +274,6 @@
         </div>
     </div>
 
-    <!-- Carga defensiva y ordenada de scripts -->
     <script src="sonidos.js" onerror="console.warn('sonidos.js no cargado')"></script>
     <script src="tienda.js" onerror="console.warn('tienda.js no cargado')"></script>
     <script src="modo-infinito.js" onerror="console.warn('modo-infinito.js no cargado')"></script>

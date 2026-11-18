@@ -5,6 +5,9 @@ let currentIndex = 0;
 let score = 0;
 let nivelActualLabel = "";
 
+// Tope máximo de puntos acumulables para gastar en la tienda
+const MAX_PUNTOS_TIENDA = 200;
+
 // Puntos acumulados en la partida actual pendientes de guardar
 let puntosPartidaPendientes = 0;
 
@@ -13,12 +16,15 @@ let multiplicadorPuntos = 1;
 let escudoActivo = false;
 let preguntaRespondida = false;
 
-// Variables de estado para Modo Multijugador 1v1
+// Variables de estado para Modo Multijugador por Equipos (1v1 a 4v4)
 let esMultijugador = false;
 let codigoSalaActual = "";
+let modoSalaActual = "1v1";
+let miEquipoActual = "A";
 let mpPollingInterval = null;
 let esAnfitrionSala = false;
 let yoTermineDuelo = false;
+let cuentaRegresivaEnCurso = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -103,6 +109,7 @@ async function obtenerPuntosUsuario() {
 function refrescarUIConPuntos(puntos) {
     let ptsNum = parseInt(puntos, 10);
     if (isNaN(ptsNum) || ptsNum < 0) ptsNum = 0;
+    ptsNum = Math.min(MAX_PUNTOS_TIENDA, ptsNum);
 
     if (typeof Tienda !== "undefined") {
         Tienda.puntosDisponibles = ptsNum;
@@ -129,7 +136,8 @@ async function cargarRanking() {
             data.ranking.forEach((jugador) => {
                 const li = document.createElement("li");
                 li.style.margin = "4px 0";
-                li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${Math.max(0, parseInt(jugador.puntos_totales, 10) || 0)} pts</span>`;
+                const ptsMostrar = Math.min(MAX_PUNTOS_TIENDA, Math.max(0, parseInt(jugador.puntos_totales, 10) || 0));
+                li.innerHTML = `<strong>${jugador.nickname}</strong>: <span style="color:#00feff;">${ptsMostrar} pts</span>`;
                 listaEl.appendChild(li);
             });
         }
@@ -159,7 +167,7 @@ async function guardarProgresoManual() {
     else if (genreLower.includes("deporte")) catId = 10;
 
     const saldoActual = (typeof Tienda !== "undefined") ? Tienda.puntosDisponibles : 0;
-    const nuevoTotalReal = saldoActual + puntosPartidaPendientes;
+    const nuevoTotalReal = Math.min(MAX_PUNTOS_TIENDA, saldoActual + puntosPartidaPendientes);
 
     try {
         const res = await fetch('/api/partida.js', {
@@ -185,7 +193,6 @@ async function guardarProgresoManual() {
     }
 }
 
-// Banco manual ampliado con explicaciones cortas para la presentación
 function obtenerBancoManualPorGenero(genre) {
     const genreLower = (genre || "").toLowerCase();
 
@@ -280,7 +287,6 @@ function obtenerBancoManualPorGenero(genre) {
     return bancosRespaldoLocal["Acción y Aventura"];
 }
 
-// Prioriza el banco manual completo para superar el 60% y dar explicaciones
 async function fetchPreguntasBD(genre, level) {
     const manuales = obtenerBancoManualPorGenero(genre);
     const mezcladas = [...manuales].sort(() => Math.random() - 0.5);
@@ -346,7 +352,6 @@ function loadQuestion() {
 
     const opcionesOriginales = q.opciones || q.options;
 
-    // Etiquetar cada opción para rastrear la correcta antes de mezclar
     const opcionesEtiquetadas = opcionesOriginales.map((opt, idx) => {
         if (typeof opt === 'object') {
             return {
@@ -360,7 +365,6 @@ function loadQuestion() {
         };
     });
 
-    // Mezcla aleatoria de casilleros (Fisher-Yates)
     for (let i = opcionesEtiquetadas.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [opcionesEtiquetadas[i], opcionesEtiquetadas[j]] = [opcionesEtiquetadas[j], opcionesEtiquetadas[i]];
@@ -399,7 +403,6 @@ function checkAnswer(index, q) {
     const esCorrecta = optSeleccionada ? optSeleccionada.esCorrecta : false;
     const indiceCorrecto = opciones.findIndex(o => o.esCorrecta);
 
-    // Colorear botones para feedback visual inmediato
     botones.forEach((btn, idx) => {
         btn.disabled = true;
         if (idx === indiceCorrecto) {
@@ -439,8 +442,6 @@ function checkAnswer(index, q) {
         if (scoreDisp) scoreDisp.innerText = `Puntos: ${score}`;
 
         if (esMultijugador) {
-            const myScoreEl = document.getElementById("mp-my-score");
-            if (myScoreEl) myScoreEl.innerText = score;
             sincronizarEstadoMultijugador(false);
         }
 
@@ -534,8 +535,8 @@ function mostrarPantallaFinal() {
         if (quizArea) {
             quizArea.innerHTML = `
                 <h2 style="color: #00feff;">🏁 ¡TERMINASTE TU RONDA!</h2>
-                <p style="font-size: 1.3rem;">Tu puntaje: ${score} pts</p>
-                <p style="color: #ffe600;">⏳ Esperando que tu rival termine sus preguntas...</p>
+                <p style="font-size: 1.3rem;">Tu aporte al Equipo ${miEquipoActual}: ${score} pts</p>
+                <p style="color: #ffe600;">⏳ Esperando que terminen los demás jugadores...</p>
                 <button class="btn-option" onclick="volverAlMenu()" style="margin-top: 15px;">SALIR AL MENÚ</button>
             `;
         }
@@ -597,6 +598,7 @@ async function volverAlMenu() {
     if (mpPollingInterval) clearInterval(mpPollingInterval);
     esMultijugador = false;
     yoTermineDuelo = false;
+    cuentaRegresivaEnCurso = false;
     codigoSalaActual = "";
 
     const scoreboard = document.getElementById("mp-scoreboard");
@@ -639,7 +641,7 @@ function cerrarSesion() {
 }
 
 // ==========================================================
-// MODO MULTIJUGADOR 1v1 EN TIEMPO REAL
+// MODO MULTIJUGADOR POR EQUIPOS (1v1, 2v2, 3v3, 4v4) + CHAT + 5s
 // ==========================================================
 
 function abrirLobbyMultijugador() {
@@ -656,14 +658,16 @@ function cerrarLobbyMultijugador() {
     if (mpPollingInterval) clearInterval(mpPollingInterval);
     esMultijugador = false;
     yoTermineDuelo = false;
+    cuentaRegresivaEnCurso = false;
     codigoSalaActual = "";
     document.getElementById("multiplayer-lobby").style.display = "none";
     document.getElementById("genre-selection").style.display = "block";
 }
 
 async function crearSalaMultijugador() {
-    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador1";
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Anfitrión";
     const genre = document.getElementById("mp-genre-select").value;
+    const modo = document.getElementById("mp-mode-select").value || "1v1";
     const preguntas = await fetchPreguntasBD(genre, "Fácil");
     const errorEl = document.getElementById("mp-error-msg");
     errorEl.innerText = "";
@@ -676,6 +680,7 @@ async function crearSalaMultijugador() {
                 accion: 'crear',
                 nickname: usuarioActual,
                 categoria: genre,
+                modo: modo,
                 preguntas: preguntas
             })
         });
@@ -683,26 +688,14 @@ async function crearSalaMultijugador() {
 
         if (res.ok && data.codigo) {
             codigoSalaActual = data.codigo;
+            modoSalaActual = modo;
             esAnfitrionSala = true;
             selectedGenre = genre;
-            selectedLevel = "Multijugador 1v1";
-            nivelActualLabel = `${genre} (1v1)`;
+            selectedLevel = `Multijugador ${modo}`;
+            nivelActualLabel = `${genre} (${modo})`;
             bancoMezclado = preguntas;
 
-            document.getElementById("mp-setup-panel").style.display = "none";
-            document.getElementById("mp-waiting-panel").style.display = "block";
-            document.getElementById("mp-room-code-display").innerText = codigoSalaActual;
-
-            mpPollingInterval = setInterval(async () => {
-                const checkRes = await fetch(`/api/multijugador.js?codigo=${codigoSalaActual}`);
-                if (checkRes.ok) {
-                    const checkData = await checkRes.json();
-                    if (checkData.sala && checkData.sala.estado === 'jugando' && checkData.sala.jugador2_nick) {
-                        clearInterval(mpPollingInterval);
-                        iniciarPartidaMultijugador(checkData.sala);
-                    }
-                }
-            }, 2000);
+            entrarVistaSalaEspera(true);
         } else {
             errorEl.innerText = data.error || "No se pudo crear la sala.";
         }
@@ -712,7 +705,7 @@ async function crearSalaMultijugador() {
 }
 
 async function unirseSalaMultijugador() {
-    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador2";
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador";
     const codigoInput = document.getElementById("mp-code-input").value.trim().toUpperCase();
     const errorEl = document.getElementById("mp-error-msg");
     errorEl.innerText = "";
@@ -736,18 +729,192 @@ async function unirseSalaMultijugador() {
 
         if (res.ok && data.sala) {
             codigoSalaActual = data.sala.codigo_sala;
-            esAnfitrionSala = false;
+            modoSalaActual = data.sala.modo || "1v1";
+            esAnfitrionSala = (data.sala.jugador1_nick === usuarioActual);
             selectedGenre = data.sala.categoria;
-            selectedLevel = "Multijugador 1v1";
-            nivelActualLabel = `${selectedGenre} (1v1)`;
+            selectedLevel = `Multijugador ${modoSalaActual}`;
+            nivelActualLabel = `${selectedGenre} (${modoSalaActual})`;
             bancoMezclado = JSON.parse(data.sala.preguntas_json);
-            iniciarPartidaMultijugador(data.sala);
+
+            entrarVistaSalaEspera(esAnfitrionSala);
+            renderizarSalaEspera(data.sala);
         } else {
             errorEl.innerText = data.error || "Sala no encontrada.";
         }
     } catch (e) {
         errorEl.innerText = "Error de conexión al unirse.";
     }
+}
+
+function entrarVistaSalaEspera(soyAnfitrion) {
+    document.getElementById("mp-setup-panel").style.display = "none";
+    document.getElementById("mp-waiting-panel").style.display = "block";
+    document.getElementById("mp-room-code-display").innerText = codigoSalaActual;
+    document.getElementById("mp-lobby-mode-badge").innerText = modoSalaActual;
+
+    const btnHost = document.getElementById("btn-mp-start-host");
+    if (btnHost) btnHost.style.display = soyAnfitrion ? "flex" : "none";
+
+    if (mpPollingInterval) clearInterval(mpPollingInterval);
+    consultarEstadoLobby();
+    mpPollingInterval = setInterval(consultarEstadoLobby, 2000);
+}
+
+async function consultarEstadoLobby() {
+    if (!codigoSalaActual || cuentaRegresivaEnCurso) return;
+    try {
+        const res = await fetch(`/api/multijugador.js?codigo=${codigoSalaActual}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.sala) return;
+
+        renderizarSalaEspera(data.sala);
+
+        if (data.sala.estado === 'jugando') {
+            clearInterval(mpPollingInterval);
+            iniciarContador5Segundos(data.sala);
+        }
+    } catch (_) { /* Reintenta en el próximo ciclo */ }
+}
+
+function renderizarSalaEspera(sala) {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+    const porEquipo = parseInt((sala.modo || "1v1").split("v")[0], 10) || 1;
+    let jugadores = [];
+    try { jugadores = JSON.parse(sala.jugadores_json || "[]"); } catch (_) { jugadores = []; }
+
+    const listA = document.getElementById("mp-team-a-list");
+    const listB = document.getElementById("mp-team-b-list");
+    if (listA && listB) {
+        listA.innerHTML = "";
+        listB.innerHTML = "";
+        jugadores.forEach(j => {
+            if (j.nick === usuarioActual) miEquipoActual = j.equipo;
+            const li = document.createElement("li");
+            li.style.marginBottom = "3px";
+            li.innerText = `${j.esAnfitrion ? "👑 " : "• "}${j.nick}`;
+            if (j.equipo === "A") listA.appendChild(li);
+            else listB.appendChild(li);
+        });
+    }
+
+    const statusEl = document.getElementById("mp-waiting-status");
+    if (statusEl) {
+        const totalMax = porEquipo * 2;
+        statusEl.innerText = `👥 Conectados: ${jugadores.length}/${totalMax} — ${esAnfitrionSala ? "Cuando estén listos, tocá Iniciar Partida" : "Esperando que el anfitrión inicie..."}`;
+    }
+
+    // Renderizar chat filtrando mensajes privados de equipo
+    let chat = [];
+    try { chat = JSON.parse(sala.chat_json || "[]"); } catch (_) { chat = []; }
+    const chatBox = document.getElementById("mp-chat-messages");
+    if (chatBox) {
+        chatBox.innerHTML = "";
+        chat.forEach(m => {
+            if (m.canal === "equipo" && m.equipo !== miEquipoActual) return;
+            const div = document.createElement("div");
+            if (m.autor === "SISTEMA") {
+                div.style.color = "#ffe600";
+                div.innerText = `⚡ ${m.texto}`;
+            } else {
+                const tagEquipo = m.canal === "equipo" ? `[EQ.${m.equipo}] ` : "";
+                const colorAutor = m.equipo === "A" ? "#00ff66" : "#ff0055";
+                div.innerHTML = `<span style="color:#00feff;">${tagEquipo}</span><strong style="color:${colorAutor};">${m.autor}:</strong> ${m.texto}`;
+            }
+            chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+async function cambiarMiEquipo() {
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
+    const errorEl = document.getElementById("mp-error-msg");
+    errorEl.innerText = "";
+
+    try {
+        const res = await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'cambiar_equipo',
+                codigo: codigoSalaActual,
+                nickname: usuarioActual
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) errorEl.innerText = data.error || "No se pudo cambiar de equipo";
+        else consultarEstadoLobby();
+    } catch (_) {}
+}
+
+async function enviarMensajeChat() {
+    const input = document.getElementById("mp-chat-input");
+    const canal = document.getElementById("mp-chat-channel").value;
+    const texto = (input.value || "").trim();
+    if (!texto || !codigoSalaActual) return;
+
+    input.value = "";
+    const usuarioActual = localStorage.getItem("press_start_usuario_actual") || "Jugador";
+
+    try {
+        await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'chat',
+                codigo: codigoSalaActual,
+                nickname: usuarioActual,
+                equipo: miEquipoActual,
+                canal: canal,
+                mensaje: texto
+            })
+        });
+        consultarEstadoLobby();
+    } catch (_) {}
+}
+
+async function anfitrionIniciarPartida() {
+    if (!esAnfitrionSala || !codigoSalaActual) return;
+    try {
+        await fetch('/api/multijugador.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: 'iniciar_partida',
+                codigo: codigoSalaActual
+            })
+        });
+        consultarEstadoLobby();
+    } catch (_) {}
+}
+
+function iniciarContador5Segundos(sala) {
+    if (cuentaRegresivaEnCurso) return;
+    cuentaRegresivaEnCurso = true;
+
+    const overlay = document.getElementById("mp-countdown-overlay");
+    const numEl = document.getElementById("mp-countdown-number");
+    let segundos = 5;
+
+    if (overlay && numEl) {
+        numEl.innerText = segundos;
+        overlay.style.display = "flex";
+    }
+    if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+
+    const timer = setInterval(() => {
+        segundos--;
+        if (segundos > 0) {
+            if (numEl) numEl.innerText = segundos;
+            if (typeof Sonidos !== "undefined" && typeof Sonidos.playClic === "function") Sonidos.playClic();
+        } else {
+            clearInterval(timer);
+            if (overlay) overlay.style.display = "none";
+            cuentaRegresivaEnCurso = false;
+            iniciarPartidaMultijugador(sala);
+        }
+    }, 1000);
 }
 
 function iniciarPartidaMultijugador(sala) {
@@ -760,9 +927,6 @@ function iniciarPartidaMultijugador(sala) {
     escudoActivo = false;
     preguntaRespondida = false;
 
-    const usuarioActual = localStorage.getItem("press_start_usuario_actual");
-    const rivalNick = (sala.jugador1_nick === usuarioActual) ? sala.jugador2_nick : sala.jugador1_nick;
-
     document.getElementById("multiplayer-lobby").style.display = "none";
     document.getElementById("menu").style.display = "none";
     document.getElementById("game").style.display = "block";
@@ -771,14 +935,13 @@ function iniciarPartidaMultijugador(sala) {
     const scoreboard = document.getElementById("mp-scoreboard");
     scoreboard.style.display = "flex";
     document.getElementById("mp-hud-code").innerText = codigoSalaActual;
-    document.getElementById("mp-rival-name").innerText = rivalNick || "Rival";
-    document.getElementById("mp-my-score").innerText = "0";
-    document.getElementById("mp-rival-score").innerText = "0";
+    document.getElementById("mp-team-a-score").innerText = "0";
+    document.getElementById("mp-team-b-score").innerText = "0";
 
     const quizArea = document.getElementById("quiz");
     quizArea.style.display = "block";
     quizArea.innerHTML = `
-        <div id="difficulty-badge" class="badge">${nivelActualLabel}</div>
+        <div id="difficulty-badge" class="badge">${nivelActualLabel} — Equipo ${miEquipoActual}</div>
         <h2 id="question">Cargando pregunta...</h2>
         <div id="options-container" class="options-grid"></div>
         <div id="feedback-box" style="display: none; margin-top: 15px; padding: 12px; border-radius: 8px; border: 1px solid #00feff; background: rgba(0, 254, 255, 0.1); text-align: left;">
@@ -819,43 +982,49 @@ async function sincronizarEstadoMultijugador(terminoParam = false) {
         if (res.ok) {
             const data = await res.json();
             if (data.sala) {
-                const s = data.sala;
-                const soyJ1 = (s.jugador1_nick === usuarioActual);
-                const puntosRival = soyJ1 ? s.jugador2_puntos : s.jugador1_puntos;
-                const rivalTermino = soyJ1 ? (s.jugador2_termino == 1) : (s.jugador1_termino == 1);
+                let jugadores = [];
+                try { jugadores = JSON.parse(data.sala.jugadores_json || "[]"); } catch (_) { jugadores = []; }
 
-                document.getElementById("mp-my-score").innerText = score;
-                document.getElementById("mp-rival-score").innerText = puntosRival;
+                const ptsA = jugadores.filter(j => j.equipo === "A").reduce((acc, j) => acc + (j.puntos || 0), 0);
+                const ptsB = jugadores.filter(j => j.equipo === "B").reduce((acc, j) => acc + (j.puntos || 0), 0);
 
-                if (yoTermineDuelo && rivalTermino) {
+                document.getElementById("mp-team-a-score").innerText = ptsA;
+                document.getElementById("mp-team-b-score").innerText = ptsB;
+
+                const todosTerminaron = jugadores.length > 0 && jugadores.every(j => j.termino === true);
+                if (todosTerminaron) {
                     clearInterval(mpPollingInterval);
-                    mostrarResultadoFinalDuelo(score, puntosRival, soyJ1 ? s.jugador2_nick : s.jugador1_nick);
+                    mostrarResultadoFinalDuelo(ptsA, ptsB);
                 }
             }
         }
     } catch (e) {
-        console.warn("Error sincronizando duelo 1v1");
+        console.warn("Error sincronizando partida por equipos");
     }
 }
 
-function mostrarResultadoFinalDuelo(misPuntos, puntosRival, nombreRival) {
+function mostrarResultadoFinalDuelo(ptsA, ptsB) {
     guardarProgresoManual();
     const quizArea = document.getElementById("quiz");
+    const misPtsEquipo = miEquipoActual === "A" ? ptsA : ptsB;
+    const rivalPtsEquipo = miEquipoActual === "A" ? ptsB : ptsA;
+
     let titulo = "🤝 ¡EMPATE ÉPICO!";
     let color = "#ffe600";
 
-    if (misPuntos > puntosRival) {
-        titulo = "🏆 ¡GANASTE EL DUELO!";
+    if (misPtsEquipo > rivalPtsEquipo) {
+        titulo = `🏆 ¡GANÓ EL EQUIPO ${miEquipoActual}!`;
         color = "#00ff66";
-    } else if (misPuntos < puntosRival) {
-        titulo = "💀 DERROTA EN EL DUELO";
+    } else if (misPtsEquipo < rivalPtsEquipo) {
+        titulo = `💀 GANÓ EL EQUIPO ${miEquipoActual === "A" ? "B" : "A"}`;
         color = "#ff0055";
     }
 
     quizArea.innerHTML = `
         <h2 style="color: ${color};">${titulo}</h2>
-        <p style="font-size: 1.2rem; color: #00feff;">Tus puntos: <strong>${misPuntos}</strong></p>
-        <p style="font-size: 1.2rem; color: #ff0055;">${nombreRival}: <strong>${puntosRival}</strong></p>
-        <button class="btn-option" onclick="volverAlMenu()">VOLVER AL MENÚ</button>
+        <p style="font-size: 1.15rem; color: #00ff66;">🛡️ Equipo A: <strong>${ptsA} pts</strong></p>
+        <p style="font-size: 1.15rem; color: #ff0055;">🔥 Equipo B: <strong>${ptsB} pts</strong></p>
+        <p style="font-size: 0.9rem; color: #00feff; margin-top: 8px;">Tu aporte individual: ${score} pts</p>
+        <button class="btn-option" onclick="volverAlMenu()" style="margin-top: 15px;">VOLVER AL MENÚ</button>
     `;
 }
